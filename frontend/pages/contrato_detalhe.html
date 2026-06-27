@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Contrato #{{ '%04d'|format(contrato.id) }} — Nobre Elegancy{% endblock %}
-{% block topbar_title %}<i class="bi bi-file-earmark-text me-2" style="color:var(--rose)"></i>Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
+{% block topbar_title %}Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
 
 {% block content %}
 <div class="d-flex gap-2 mb-3 flex-wrap">
@@ -8,11 +8,11 @@
   {% if current_user.is_admin %}
   <a href="{{ url_for('contratos.editar', id=contrato.id) }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>
   <form method="POST" action="{{ url_for('contratos.excluir', id=contrato.id) }}" onsubmit="return confirm('Excluir este contrato?')">
-    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Excluir</button>
+    <button class="btn btn-sm btn-outline-danger">Excluir</button>
   </form>
   {% endif %}
   {% if contrato.cliente.telefone %}
-  <a href="https://wa.me/55{{ contrato.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ contrato.cliente.nome|urlencode }}!+Segue+resumo+do+seu+contrato+%23{{ '%04d'|format(contrato.id) }}:+Vestido:+{% for i in contrato.itens %}{{ i.peca.codigo }}{% if not loop.last %}%2C+{% endif %}{% endfor %}+|+Retirada:+{{ contrato.data_retirada.strftime('%d/%m/%Y') }}+|+Devolução:+{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}+|+Total:+R$+{{ '%.2f'|format(contrato.valor_total)|replace('.',',') }}+|+Sinal:+R$+{{ '%.2f'|format(contrato.valor_sinal)|replace('.',',') }}+|+Saldo:+R$+{{ '%.2f'|format(contrato.saldo_restante)|replace('.',',') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
+  <a href="https://wa.me/55{{ contrato.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ contrato.cliente.nome|urlencode }}!+Contrato+%23{{ '%04d'|format(contrato.id) }}:+Vestido:+{% for i in contrato.itens %}{{ i.peca.codigo }}{% if not loop.last %}%2C+{% endif %}{% endfor %}+|+Retirada:+{{ contrato.data_retirada.strftime('%d/%m/%Y') }}+|+Devolução:+{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}+|+Total:+R$+{{ '%.2f'|format(contrato.valor_total)|replace('.',',') }}+|+Saldo:+R$+{{ '%.2f'|format(contrato.saldo_restante)|replace('.',',') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
   {% endif %}
   <a href="{{ url_for('contratos.lista') }}" class="btn btn-rose-outline btn-sm ms-auto"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
 </div>
@@ -22,10 +22,10 @@
     <div class="card h-100">
       <div class="card-header"><h6><i class="bi bi-person me-2"></i>Cliente</h6></div>
       <div class="card-body">
-        <p class="mb-1 fw-bold">{{ contrato.cliente.nome }}</p>
-        <p class="mb-1 text-muted" style="font-size:.85rem">CPF: {{ contrato.cliente.cpf or '—' }}</p>
-        <p class="mb-1 text-muted" style="font-size:.85rem">Tel: {{ contrato.cliente.telefone or '—' }}</p>
-        <p class="mb-0 text-muted" style="font-size:.85rem">End: {{ contrato.cliente.endereco or '—' }}</p>
+        <p class="mb-1 fw-bold" style="color:var(--rose-light)">{{ contrato.cliente.nome }}</p>
+        <p class="mb-1" style="font-size:.82rem;color:var(--text-sec)">CPF: {{ contrato.cliente.cpf or '—' }}</p>
+        <p class="mb-1" style="font-size:.82rem;color:var(--text-sec)">Tel: {{ contrato.cliente.telefone or '—' }}</p>
+        <p class="mb-0" style="font-size:.82rem;color:var(--text-sec)">End: {{ contrato.cliente.endereco or '—' }}</p>
       </div>
     </div>
   </div>
@@ -33,10 +33,13 @@
     <div class="card h-100">
       <div class="card-header"><h6><i class="bi bi-calendar3 me-2"></i>Datas & Status</h6></div>
       <div class="card-body">
-        <p class="mb-1"><span class="text-muted" style="font-size:.85rem">Retirada:</span> <strong>{{ contrato.data_retirada.strftime('%d/%m/%Y') }}</strong></p>
-        <p class="mb-1"><span class="text-muted" style="font-size:.85rem">Devolução:</span> <strong>{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}</strong></p>
+        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Retirada:</span> <strong>{{ contrato.data_retirada.strftime('%d/%m/%Y') }}</strong></p>
+        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Devolução:</span> <strong>{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}</strong></p>
+        {% if contrato.data_prova %}
+        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Prova:</span> <strong style="color:var(--rose-light)">{{ contrato.data_prova.strftime('%d/%m/%Y') }}</strong></p>
+        {% endif %}
         {% if contrato.data_devolucao_real %}
-        <p class="mb-1"><span class="text-muted" style="font-size:.85rem">Devolvido em:</span> <strong>{{ contrato.data_devolucao_real.strftime('%d/%m/%Y') }}</strong></p>
+        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Devolvido em:</span> <strong>{{ contrato.data_devolucao_real.strftime('%d/%m/%Y') }}</strong></p>
         {% endif %}
         <div class="mt-2">
           <span class="badge badge-{{ contrato.status }} fs-6">{{ contrato.status|title }}</span>
@@ -53,7 +56,6 @@
     </div>
   </div>
 
-  <!-- VESTIDOS -->
   <div class="col-12">
     <div class="card">
       <div class="card-header"><h6><i class="bi bi-bag-heart me-2"></i>Vestido(s)</h6></div>
@@ -67,7 +69,7 @@
               <td>{{ item.peca.modelo }}</td>
               <td>{{ item.peca.cor }}</td>
               <td>{{ item.peca.tamanho }}</td>
-              <td>R$ {{ '%.2f'|format(item.preco_cobrado)|replace('.',',') }}</td>
+              <td style="color:var(--gold)">R$ {{ '%.2f'|format(item.preco_cobrado)|replace('.',',') }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -76,17 +78,15 @@
     </div>
   </div>
 
-  <!-- VALORES -->
   <div class="col-md-6">
     <div class="card">
       <div class="card-header"><h6><i class="bi bi-cash me-2"></i>Valores</h6></div>
       <div class="card-body">
-        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Total</span><strong>R$ {{ '%.2f'|format(contrato.valor_total)|replace('.',',') }}</strong></div>
-        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Pago</span><span style="color:#065f46">R$ {{ '%.2f'|format(contrato.valor_pago)|replace('.',',') }}</span></div>
-        <hr style="border-color:var(--border)">
+        <div class="d-flex justify-content-between mb-1"><span style="color:var(--text-sec)">Total</span><strong>R$ {{ '%.2f'|format(contrato.valor_total)|replace('.',',') }}</strong></div>
+        <div class="d-flex justify-content-between mb-1"><span style="color:var(--text-sec)">Pago</span><span style="color:var(--green)">R$ {{ '%.2f'|format(contrato.valor_pago)|replace('.',',') }}</span></div>
+        <hr>
         <div class="d-flex justify-content-between"><span class="fw-bold">Saldo</span><strong style="color:var(--rose);font-size:1.1rem">R$ {{ '%.2f'|format(contrato.saldo_restante)|replace('.',',') }}</strong></div>
-        <!-- Registrar pagamento -->
-        <hr style="border-color:var(--border)">
+        <hr>
         <form method="POST" action="{{ url_for('contratos.registrar_pagamento', id=contrato.id) }}" class="row g-2">
           <div class="col-6"><input type="number" step="0.01" name="valor" class="form-control form-control-sm" placeholder="Valor (R$)" required></div>
           <div class="col-6">
@@ -103,21 +103,19 @@
     </div>
   </div>
 
-  <!-- MEDIDAS -->
   <div class="col-md-6">
     <div class="card">
       <div class="card-header"><h6><i class="bi bi-rulers me-2"></i>Medidas & Observações</h6></div>
       <div class="card-body">
         {% if contrato.observacoes %}
-        <pre style="white-space:pre-wrap;font-size:.85rem;color:var(--text);font-family:inherit;margin:0">{{ contrato.observacoes }}</pre>
+        <pre style="white-space:pre-wrap;font-size:.82rem;color:var(--text);font-family:inherit;margin:0">{{ contrato.observacoes }}</pre>
         {% else %}
-        <span class="text-muted">Sem observações.</span>
+        <span style="color:var(--text-dim)">Sem observações.</span>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <!-- HISTÓRICO DE PAGAMENTOS -->
   {% if contrato.pagamentos %}
   <div class="col-12">
     <div class="card">
@@ -128,10 +126,10 @@
           <tbody>
             {% for p in contrato.pagamentos %}
             <tr>
-              <td>{{ p.data.strftime('%d/%m/%Y') }}</td>
+              <td style="color:var(--text-dim)">{{ p.data.strftime('%d/%m/%Y') }}</td>
               <td>{{ p.tipo|title }}</td>
               <td>{{ p.forma|replace('_',' ')|title }}</td>
-              <td class="fw-bold" style="color:var(--rose)">R$ {{ '%.2f'|format(p.valor)|replace('.',',') }}</td>
+              <td style="color:var(--rose-light);font-weight:600">R$ {{ '%.2f'|format(p.valor)|replace('.',',') }}</td>
             </tr>
             {% endfor %}
           </tbody>
