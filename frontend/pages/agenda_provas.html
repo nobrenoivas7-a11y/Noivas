@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Agenda de Provas — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Agenda de Provas{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="?periodo=hoje" class="btn btn-sm {{ 'btn-rose' if periodo=='hoje' else 'btn-rose-outline' }}">Hoje</a>
+  <a href="?periodo=semana" class="btn btn-sm {{ 'btn-rose' if periodo=='semana' else 'btn-rose-outline' }}">Esta Semana</a>
+  <a href="?periodo=mes" class="btn btn-sm {{ 'btn-rose' if periodo=='mes' else 'btn-rose-outline' }}">Este Mês</a>
+  <span class="ms-2 align-self-center" style="font-size:.82rem;color:var(--text-dim)">{{ inicio.strftime('%d/%m') }} → {{ fim.strftime('%d/%m/%Y') }}</span>
+  <a href="{{ url_for('agenda.index') }}" class="btn btn-rose-outline btn-sm ms-auto"><i class="bi bi-calendar3 me-1"></i>Agenda de Saídas</a>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h6><i class="bi bi-scissors me-2" style="color:var(--rose)"></i>Provas Agendadas</h6>
+  </div>
+  <div class="card-body p-0">
+    {% if contratos %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Vestido</th>
+          <th>Data da Prova</th>
+          <th>Retirada</th>
+          <th>Devolução</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in contratos %}
+        <tr {% if c.data_prova == hoje %}style="border-left:3px solid var(--rose)"{% endif %}>
+          <td>
+            <a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="contract-id">#{{ '%04d'|format(c.id) }}</a>
+          </td>
+          <td>{{ c.cliente.nome }}</td>
+          <td style="font-size:.8rem;color:var(--text-dim)">
+            {% for i in c.itens %}{{ i.peca.codigo }}{% if not loop.last %}, {% endif %}{% endfor %}
+          </td>
+          <td>
+            <span style="color:var(--rose-light);font-weight:600">
+              {{ c.data_prova.strftime('%d/%m/%Y') if c.data_prova else '—' }}
+            </span>
+            {% if c.data_prova == hoje %}
+              <span class="badge ms-1" style="background:var(--rose);color:#fff;font-size:.65rem">HOJE</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--text-dim)">{{ c.data_retirada.strftime('%d/%m/%Y') }}</td>
+          <td style="color:var(--text-dim)">{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
+          <td><span class="badge badge-{{ c.status }}">{{ c.status|title }}</span></td>
+          <td>
+            {% if c.cliente.telefone %}
+            <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ c.cliente.nome|urlencode }},+lembrando+que+sua+prova+do+vestido+está+agendada+para+{{ c.data_prova.strftime('%d/%m/%Y') if c.data_prova else '' }}." target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:var(--text-dim)">
+      <i class="bi bi-scissors" style="font-size:2.5rem;color:var(--border)"></i>
+      <p class="mt-2">Nenhuma prova agendada no período.</p>
+      <p style="font-size:.82rem">As provas aparecem aqui quando o contrato tem data de prova preenchida.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
