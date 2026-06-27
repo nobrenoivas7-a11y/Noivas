@@ -21,7 +21,6 @@ def nova():
             cor = request.form.get('cor', '').strip()
             tamanho = request.form.get('tamanho', '').strip()
             forcar = request.form.get('forcar_cadastro', '0') == '1'
-
             if not forcar:
                 duplicata = Peca.query.filter(
                     db.func.lower(Peca.modelo) == modelo.lower(),
@@ -31,7 +30,6 @@ def nova():
                 if duplicata:
                     flash(f'Já existe um vestido com esse Modelo/Cor/Tamanho ({duplicata.codigo}). Marque "Forçar cadastro" para continuar.', 'warning')
                     return render_template('estoque_form.html', dados=request.form, nova=True)
-
             peca = Peca(
                 codigo=Peca.gerar_codigo(),
                 tipo='Vestido de Noiva',
