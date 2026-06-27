@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Agenda — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-calendar3 me-2" style="color:var(--rose)"></i>Agenda{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="?periodo=hoje" class="btn btn-sm {{ 'btn-rose' if periodo=='hoje' else 'btn-rose-outline' }}">Hoje</a>
+  <a href="?periodo=semana" class="btn btn-sm {{ 'btn-rose' if periodo=='semana' else 'btn-rose-outline' }}">Esta Semana</a>
+  <a href="?periodo=mes" class="btn btn-sm {{ 'btn-rose' if periodo=='mes' else 'btn-rose-outline' }}">Este Mês</a>
+  <span class="ms-2 text-muted align-self-center" style="font-size:.85rem">{{ inicio.strftime('%d/%m') }} → {{ fim.strftime('%d/%m/%Y') }}</span>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    {% if contratos %}
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Cliente</th><th>Vestido</th><th>Retirada</th><th>Devolução</th><th>Saldo</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in contratos %}
+        <tr {% if c.status == 'atrasado' %}style="background:#fef2f2"{% endif %}>
+          <td><a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="fw-bold text-decoration-none" style="color:var(--rose)">#{{ '%04d'|format(c.id) }}</a></td>
+          <td>{{ c.cliente.nome }}</td>
+          <td style="font-size:.8rem">{% for i in c.itens %}{{ i.peca.codigo }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+          <td>{{ c.data_retirada.strftime('%d/%m/%Y') }}</td>
+          <td>{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
+          <td class="fw-bold" style="color:var(--rose)">R$ {{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}</td>
+          <td><span class="badge badge-{{ c.status }}">{{ c.status|title }}</span></td>
+          <td>
+            {% if c.cliente.telefone %}
+            <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-calendar-x" style="font-size:2.5rem;color:var(--rose-mid)"></i>
+      <p class="mt-2">Nenhuma retirada no período selecionado.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

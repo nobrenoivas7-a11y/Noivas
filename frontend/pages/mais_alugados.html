@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Vestidos Mais Alugados — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Vestidos Mais Alugados{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><h6><i class="bi bi-trophy me-2" style="color:var(--gold)"></i>Ranking de Vestidos</h6></div>
+  <div class="card-body p-0">
+    {% if resultado %}
+    <table class="table table-hover mb-0">
+      <thead><tr><th style="width:40px">#</th><th>Código</th><th>Modelo</th><th>Cor</th><th>Tamanho</th><th>Preço</th><th>Vezes Alugado</th></tr></thead>
+      <tbody>
+        {% for peca, total in resultado %}
+        <tr>
+          <td style="color:var(--text-dim);font-weight:600">{{ loop.index }}</td>
+          <td style="color:var(--rose);font-weight:700;font-family:'Cormorant Garamond',serif;font-size:1rem">{{ peca.codigo }}</td>
+          <td>{{ peca.modelo }}</td>
+          <td>{{ peca.cor }}</td>
+          <td>{{ peca.tamanho }}</td>
+          <td style="color:var(--gold)">R$ {{ '%.2f'|format(peca.preco_aluguel)|replace('.',',') }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div style="height:6px;background:var(--border);border-radius:3px;width:80px">
+                <div style="height:6px;border-radius:3px;background:linear-gradient(90deg,var(--rose),var(--gold));width:{{ [total * 10, 80]|min }}px"></div>
+              </div>
+              <span style="color:var(--rose-light);font-weight:600">{{ total }}x</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:var(--text-dim)">
+      <i class="bi bi-trophy" style="font-size:2.5rem;color:var(--border)"></i>
+      <p class="mt-2">Nenhum vestido alugado ainda.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

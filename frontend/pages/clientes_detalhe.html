@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ cliente.nome }} — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-person me-2" style="color:var(--rose)"></i>{{ cliente.nome }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <h6 class="m-0"><i class="bi bi-person me-2"></i>Dados</h6>
+        <a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-rose-outline"><i class="bi bi-pencil"></i></a>
+      </div>
+      <div class="card-body">
+        <p class="mb-2 fw-bold fs-5" style="color:var(--rose)">{{ cliente.nome }}</p>
+        <p class="mb-1 text-muted" style="font-size:.85rem"><i class="bi bi-credit-card me-1"></i>{{ cliente.cpf or '—' }}</p>
+        <p class="mb-1 text-muted" style="font-size:.85rem"><i class="bi bi-phone me-1"></i>{{ cliente.telefone or '—' }}</p>
+        <p class="mb-1 text-muted" style="font-size:.85rem"><i class="bi bi-envelope me-1"></i>{{ cliente.email or '—' }}</p>
+        <p class="mb-0 text-muted" style="font-size:.85rem"><i class="bi bi-geo-alt me-1"></i>{{ cliente.endereco or '—' }}</p>
+        {% if cliente.observacoes %}
+        <hr style="border-color:var(--border)">
+        <p class="text-muted" style="font-size:.82rem">{{ cliente.observacoes }}</p>
+        {% endif %}
+        {% if cliente.telefone %}
+        <a href="https://wa.me/55{{ cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm mt-2" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <h6 class="m-0"><i class="bi bi-file-earmark-text me-2"></i>Histórico de Contratos</h6>
+        <span class="badge" style="background:var(--rose-light);color:var(--rose-dark)">{{ cliente.contratos|length }} contrato(s)</span>
+      </div>
+      <div class="card-body p-0">
+        {% if cliente.contratos %}
+        <table class="table table-hover mb-0">
+          <thead><tr><th>#</th><th>Retirada</th><th>Devolução</th><th>Vestido</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for c in cliente.contratos|sort(attribute='id', reverse=True) %}
+            <tr>
+              <td><a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="fw-bold text-decoration-none" style="color:var(--rose)">#{{ '%04d'|format(c.id) }}</a></td>
+              <td>{{ c.data_retirada.strftime('%d/%m/%Y') }}</td>
+              <td>{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
+              <td style="font-size:.8rem">{% for i in c.itens %}{{ i.peca.codigo }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+              <td>R$ {{ '%.2f'|format(c.valor_total)|replace('.',',') }}</td>
+              <td><span class="badge badge-{{ c.status }}">{{ c.status|title }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4 text-muted">Nenhum contrato ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

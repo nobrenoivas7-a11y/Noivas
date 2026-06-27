@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Vestidos — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-bag-heart me-2" style="color:var(--rose)"></i>Estoque de Vestidos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex gap-2">
+    <span class="badge" style="background:var(--rose-light);color:var(--rose-dark)">Total: {{ pecas|length }}</span>
+    <span class="badge" style="background:#d1fae5;color:#065f46">Disponíveis: {{ pecas|selectattr('status','eq','disponivel')|list|length }}</span>
+    <span class="badge" style="background:#fef3c7;color:#92400e">Manutenção: {{ pecas|selectattr('status','eq','manutencao')|list|length }}</span>
+  </div>
+  <a href="{{ url_for('estoque.nova') }}" class="btn btn-rose btn-sm"><i class="bi bi-plus me-1"></i>Novo Vestido</a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if pecas %}
+    <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Código</th><th>Modelo</th><th>Cor</th><th>Tamanho</th><th>Preço</th><th>Status</th><th>Descrição</th><th></th></tr></thead>
+      <tbody>
+        {% for p in pecas %}
+        <tr>
+          <td class="fw-bold" style="color:var(--rose)">{{ p.codigo }}</td>
+          <td>{{ p.modelo }}</td>
+          <td>{{ p.cor }}</td>
+          <td>{{ p.tamanho }}</td>
+          <td>R$ {{ '%.2f'|format(p.preco_aluguel)|replace('.',',') }}</td>
+          <td>
+            {% if p.status == 'disponivel' %}<span class="badge" style="background:#d1fae5;color:#065f46">Disponível</span>
+            {% elif p.status == 'manutencao' %}<span class="badge" style="background:#fef3c7;color:#92400e">Manutenção</span>
+            {% else %}<span class="badge" style="background:#f3f4f6;color:#6b7280">Inativo</span>{% endif %}
+          </td>
+          <td style="font-size:.78rem;color:var(--text-sec);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.descricao or '—' }}</td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('estoque.editar', id=p.id) }}" class="btn btn-sm btn-rose-outline"><i class="bi bi-pencil"></i></a>
+              {% if current_user.is_admin %}
+              <form method="POST" action="{{ url_for('estoque.excluir', id=p.id) }}" onsubmit="return confirm('Excluir este vestido?')">
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-bag-x" style="font-size:2.5rem;color:var(--rose-mid)"></i>
+      <p class="mt-2">Nenhum vestido cadastrado.</p>
+      <a href="{{ url_for('estoque.nova') }}" class="btn btn-rose btn-sm">Cadastrar primeiro vestido</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

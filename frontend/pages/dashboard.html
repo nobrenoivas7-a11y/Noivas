@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Saudação -->
+<div class="mb-4">
+  <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--text)">
+    Olá, {{ current_user.nome }}! 👋
+  </h2>
+  <div style="font-size:.8rem;color:var(--text-dim)">{{ hoje.strftime('%A, %d de %B de %Y')|replace('Monday','Segunda-feira')|replace('Tuesday','Terça-feira')|replace('Wednesday','Quarta-feira')|replace('Thursday','Quinta-feira')|replace('Friday','Sexta-feira')|replace('Saturday','Sábado')|replace('Sunday','Domingo')|replace('January','janeiro')|replace('February','fevereiro')|replace('March','março')|replace('April','abril')|replace('May','maio')|replace('June','junho')|replace('July','julho')|replace('August','agosto')|replace('September','setembro')|replace('October','outubro')|replace('November','novembro')|replace('December','dezembro') }}</div>
+</div>
+
+<!-- 5 STAT CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md">
+    <div class="stat-card" style="--accent-color:var(--rose-light)">
+      <div class="stat-label">Contratos Ativos</div>
+      <div class="stat-value">{{ total_contratos }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card" style="--accent-color:var(--red)">
+      <div class="stat-label">Em Atraso</div>
+      <div class="stat-value" style="color:var(--red)">{{ total_atrasados }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card" style="--accent-color:var(--gold)">
+      <div class="stat-label">Recebido Este Mês</div>
+      <div class="stat-value" style="color:var(--gold);font-size:1.4rem">R$ {{ '%.0f'|format(receita_mes) }}</div>
+      <div class="stat-sub">{{ hoje.strftime('%B')|replace('January','Janeiro')|replace('February','Fevereiro')|replace('March','Março')|replace('April','Abril')|replace('May','Maio')|replace('June','Junho')|replace('July','Julho')|replace('August','Agosto')|replace('September','Setembro')|replace('October','Outubro')|replace('November','Novembro')|replace('December','Dezembro') }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card" style="--accent-color:#a78bfa">
+      <div class="stat-label">A Receber</div>
+      <div class="stat-value" style="color:#a78bfa;font-size:1.4rem">R$ {{ '%.0f'|format(a_receber) }}</div>
+      <div class="stat-sub">contratos ativos</div>
+    </div>
+  </div>
+  <div class="col-6 col-md">
+    <div class="stat-card" style="--accent-color:var(--green)">
+      <div class="stat-label">Saídas Hoje</div>
+      <div class="stat-value" style="color:var(--green)">{{ saidas_hoje }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- LINHA 2: contratos recentes + receita por forma -->
+<div class="row g-3 mb-4">
+  <div class="col-md-7">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6><i class="bi bi-file-earmark-text me-2" style="color:var(--rose)"></i>CONTRATOS RECENTES</h6>
+        <a href="{{ url_for('contratos.lista') }}" style="font-size:.72rem;color:var(--text-dim)">Ver todos →</a>
+      </div>
+      <div class="card-body p-0">
+        {% if contratos_recentes %}
+        <table class="table table-hover mb-0">
+          <tbody>
+            {% for c in contratos_recentes %}
+            <tr>
+              <td style="width:70px">
+                <a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="contract-id">#{{ '%04d'|format(c.id) }}</a>
+              </td>
+              <td>{{ c.cliente.nome }}</td>
+              <td class="text-muted">{{ c.data_devolucao.strftime('%d/%m') }}</td>
+              <td>
+                {% if c.saldo_restante == 0 %}
+                  <span style="color:var(--green);font-size:.78rem">✓ Quitado</span>
+                {% else %}
+                  <span style="color:var(--rose);font-size:.78rem">R$ {{ '%.0f'|format(c.saldo_restante) }}</span>
+                {% endif %}
+              </td>
+              <td><span class="badge badge-{{ c.status }}">{{ c.status|title }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4" style="color:var(--text-dim);font-size:.82rem">Nenhum contrato ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card h-100">
+      <div class="card-header">
+        <h6><i class="bi bi-cash me-2" style="color:var(--gold)"></i>RECEITA DO MÊS POR FORMA</h6>
+      </div>
+      <div class="card-body">
+        {% if por_forma %}
+          {% for forma, val in por_forma.items() %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:.8rem;color:var(--text-sec)">{{ forma|replace('_',' ')|title }}</span>
+            <span style="font-weight:600;color:var(--gold)">R$ {{ '%.2f'|format(val)|replace('.',',') }}</span>
+          </div>
+          <div class="mb-3" style="height:4px;background:var(--border);border-radius:2px">
+            <div style="height:4px;border-radius:2px;background:linear-gradient(90deg,var(--rose),var(--gold));width:{{ (val/receita_mes*100)|int if receita_mes else 0 }}%"></div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Sem pagamentos este mês.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTAS -->
+{% if alertas %}
+<div class="card mb-3" style="border-color:rgba(248,113,113,.3)">
+  <div class="card-header" style="border-color:rgba(248,113,113,.3)">
+    <h6 style="color:var(--red)"><i class="bi bi-bell me-2"></i>DEVOLUÇÕES NOS PRÓXIMOS 3 DIAS</h6>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <tbody>
+        {% for c in alertas %}
+        <tr>
+          <td><a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="contract-id">#{{ '%04d'|format(c.id) }}</a></td>
+          <td>{{ c.cliente.nome }}</td>
+          <td style="color:var(--red);font-size:.8rem">{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
+          <td style="color:var(--rose)">R$ {{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}</td>
+          <td>
+            {% if c.cliente.telefone %}
+            <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ c.cliente.nome|urlencode }},+seu+vestido+deve+ser+devolvido+em+{{ c.data_devolucao.strftime('%d/%m/%Y') }}.+Saldo:+R$+{{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff;font-size:.72rem"><i class="bi bi-whatsapp"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- AÇÕES RÁPIDAS -->
+<div class="d-flex gap-2 flex-wrap">
+  <a href="{{ url_for('contratos.novo') }}" class="btn btn-rose btn-sm px-3"><i class="bi bi-plus-circle me-1"></i>Novo Contrato</a>
+  <a href="{{ url_for('estoque.nova') }}" class="btn btn-rose-outline btn-sm px-3"><i class="bi bi-bag-heart me-1"></i>Novo Vestido</a>
+  <a href="{{ url_for('agenda.index') }}" class="btn btn-rose-outline btn-sm px-3"><i class="bi bi-calendar3 me-1"></i>Agenda</a>
+  <a href="{{ url_for('consultas.index') }}" class="btn btn-rose-outline btn-sm px-3"><i class="bi bi-search me-1"></i>Consultar</a>
+</div>
+{% endblock %}

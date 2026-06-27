@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Nova Cliente' if not cliente else 'Editar Cliente' }} — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-person-plus me-2" style="color:var(--rose)"></i>{{ 'Nova Cliente' if not cliente else 'Editar Cliente' }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header"><h6>{{ 'Cadastrar Nova Cliente' if not cliente else 'Editar: ' + cliente.nome }}</h6></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label">Nome *</label><input type="text" name="nome" class="form-control" value="{{ cliente.nome if cliente else '' }}" required></div>
+        <div class="col-md-6"><label class="form-label">CPF</label><input type="text" name="cpf" class="form-control" value="{{ cliente.cpf if cliente else '' }}" placeholder="000.000.000-00"></div>
+        <div class="col-md-6"><label class="form-label">Telefone / WhatsApp</label><input type="text" name="telefone" class="form-control" value="{{ cliente.telefone if cliente else '' }}"></div>
+        <div class="col-12"><label class="form-label">E-mail</label><input type="email" name="email" class="form-control" value="{{ cliente.email if cliente else '' }}"></div>
+        <div class="col-12"><label class="form-label">Endereço</label><input type="text" name="endereco" class="form-control" value="{{ cliente.endereco if cliente else '' }}"></div>
+        <div class="col-12"><label class="form-label">Observações</label><textarea name="observacoes" class="form-control" rows="2">{{ cliente.observacoes if cliente else '' }}</textarea></div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-rose px-4">{{ 'Cadastrar' if not cliente else 'Salvar' }}</button>
+          <a href="{{ url_for('clientes.lista') }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

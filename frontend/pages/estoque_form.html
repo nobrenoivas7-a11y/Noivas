@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Novo Vestido' if nova else 'Editar Vestido' }} — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-bag-heart me-2" style="color:var(--rose)"></i>{{ 'Novo Vestido' if nova else 'Editar Vestido' }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:650px">
+  <div class="card-header"><h6>{{ 'Cadastrar Novo Vestido' if nova else 'Editar Vestido ' + peca.codigo }}</h6></div>
+  <div class="card-body">
+    <div id="alerta_duplicata" class="alert alert-warning d-none"></div>
+    <form method="POST" id="formPeca">
+      {% if not nova %}
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-select">
+            <option value="disponivel" {% if peca.status=='disponivel' %}selected{% endif %}>Disponível</option>
+            <option value="manutencao" {% if peca.status=='manutencao' %}selected{% endif %}>Manutenção</option>
+            <option value="inativa" {% if peca.status=='inativa' %}selected{% endif %}>Inativo</option>
+          </select>
+        </div>
+      </div>
+      <hr style="border-color:var(--border)">
+      {% endif %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Modelo *</label>
+          <input type="text" name="modelo" class="form-control" value="{{ peca.modelo if peca else dados.modelo if dados else '' }}" required placeholder="Ex: Princesa, Sereia, Evasê..." list="modelos_list">
+          <datalist id="modelos_list">
+            <option value="Princesa"><option value="Sereia"><option value="Evasê"><option value="A-Line">
+            <option value="Tomara-que-caia"><option value="Longo"><option value="Curto"><option value="Midi">
+          </datalist>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Cor *</label>
+          <input type="text" name="cor" class="form-control" value="{{ peca.cor if peca else dados.cor if dados else '' }}" required placeholder="Ex: Branco" list="cores_list">
+          <datalist id="cores_list">
+            <option value="Branco"><option value="Marfim"><option value="Off-white"><option value="Champagne">
+            <option value="Nude"><option value="Rosa"><option value="Dourado">
+          </datalist>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tamanho *</label>
+          <input type="text" name="tamanho" class="form-control" value="{{ peca.tamanho if peca else dados.tamanho if dados else '' }}" required placeholder="36, 38..." list="tam_list">
+          <datalist id="tam_list">
+            <option value="34"><option value="36"><option value="38"><option value="40"><option value="42">
+            <option value="44"><option value="46"><option value="48"><option value="P"><option value="M"><option value="G"><option value="GG">
+          </datalist>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Preço de Aluguel (R$)</label>
+          <input type="number" step="0.01" name="preco_aluguel" class="form-control" value="{{ peca.preco_aluguel if peca else '' }}" placeholder="0,00">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descrição (acessórios inclusos, tecido, detalhes)</label>
+          <textarea name="descricao" class="form-control" rows="3" placeholder="Ex: Véu incluso, renda na barra, cauda de 1m...">{{ peca.descricao if peca else '' }}</textarea>
+        </div>
+        {% if nova %}
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="forcar_cadastro" value="1" id="forcar">
+            <label class="form-check-label text-muted" for="forcar" style="font-size:.85rem">Forçar cadastro mesmo se houver duplicata</label>
+          </div>
+        </div>
+        {% endif %}
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-rose px-4">{{ 'Cadastrar Vestido' if nova else 'Salvar Alterações' }}</button>
+          <a href="{{ url_for('estoque.lista') }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if nova %}
+<script>
+let checkTimer;
+['modelo','cor','tamanho'].forEach(id => {
+  document.querySelector(`[name="${id}"]`).addEventListener('input', () => {
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(verificarDuplicata, 400);
+  });
+});
+
+async function verificarDuplicata() {
+  const modelo = document.querySelector('[name=modelo]').value;
+  const cor = document.querySelector('[name=cor]').value;
+  const tamanho = document.querySelector('[name=tamanho]').value;
+  if (!modelo || !cor || !tamanho) return;
+  const res = await fetch(`/estoque/verificar-duplicata?modelo=${encodeURIComponent(modelo)}&cor=${encodeURIComponent(cor)}&tamanho=${encodeURIComponent(tamanho)}`);
+  const data = await res.json();
+  const alerta = document.getElementById('alerta_duplicata');
+  if (data.duplicata) {
+    alerta.textContent = `⚠️ Já existe um vestido ${data.codigo} com esse Modelo/Cor/Tamanho. Marque "Forçar cadastro" para continuar.`;
+    alerta.classList.remove('d-none');
+  } else {
+    alerta.classList.add('d-none');
+  }
+}
+</script>
+{% endif %}
+{% endblock %}

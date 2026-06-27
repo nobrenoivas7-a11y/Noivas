@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Nobre Elegancy — Novo Contrato</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    :root { --rose: #B76E79; --rose-dark: #8B3A47; --rose-light: #F5E6E8; --border: #E8C5C9; }
+    body { background: #FAF6F7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding-bottom: 80px; }
+    .topbar { background: var(--rose); padding: 1rem; color: #fff; text-align: center; position: sticky; top: 0; z-index: 100; }
+    .topbar h1 { font-size: 1.1rem; margin: 0; font-weight: 700; }
+    .section { background: #fff; border-radius: 12px; margin: 1rem; padding: 1rem; border: 1px solid var(--border); }
+    .section-title { color: var(--rose); font-weight: 600; font-size: .9rem; margin-bottom: .75rem; }
+    .form-control:focus, .form-select:focus { border-color: var(--rose); box-shadow: 0 0 0 .2rem rgba(183,110,121,.2); }
+    .btn-rose { background: var(--rose); color: #fff; border: none; }
+    .btn-rose:hover { background: var(--rose-dark); color: #fff; }
+    /* BOTTOM SHEET */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; display: none; }
+    .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 201; max-height: 85vh; overflow-y: auto; padding: 1rem; transform: translateY(100%); transition: transform .3s ease; }
+    .sheet.open { transform: translateY(0); }
+    .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto .75rem; }
+    .vestido-item { padding: .75rem; border: 1px solid var(--border); border-radius: 10px; margin-bottom: .5rem; cursor: pointer; }
+    .vestido-item.selected { border-color: var(--rose); background: var(--rose-light); }
+    .badge-selecionado { display: inline-flex; align-items: center; gap: .3rem; background: var(--rose-light); color: var(--rose-dark); border-radius: 20px; padding: .25rem .6rem; font-size: .78rem; }
+    .bottom-btn { position: fixed; bottom: 0; left: 0; right: 0; padding: 1rem; background: #fff; border-top: 1px solid var(--border); display: flex; gap: .5rem; z-index: 100; }
+    .ac-list { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid var(--border); border-radius: 8px; z-index: 999; max-height: 160px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+    .ac-item { padding: .6rem .75rem; cursor: pointer; font-size: .85rem; }
+    .ac-item:hover { background: var(--rose-light); }
+  </style>
+</head>
+<body>
+<div class="topbar"><h1>✿ Novo Contrato</h1><div style="font-size:.75rem;opacity:.8">Nobre Elegancy Noivas</div></div>
+
+<form method="POST" action="{{ url_for('contratos.novo') }}" id="formApp">
+
+<!-- PERÍODO -->
+<div class="section">
+  <div class="section-title"><i class="bi bi-calendar3 me-1"></i>Período</div>
+  <div class="mb-2">
+    <label style="font-size:.82rem;color:#888">Retirada *</label>
+    <input type="date" name="data_retirada" id="dr" class="form-control" required>
+  </div>
+  <div class="mb-2">
+    <label style="font-size:.82rem;color:#888">Devolução *</label>
+    <input type="date" name="data_devolucao" id="dd" class="form-control" required>
+  </div>
+  <button type="button" class="btn btn-rose w-100" onclick="abrirSheet()"><i class="bi bi-bag-heart me-1"></i>Selecionar Vestido</button>
+</div>
+
+<!-- VESTIDOS SELECIONADOS -->
+<div class="section" id="sec_selecionados" style="display:none">
+  <div class="section-title">Vestido(s) Selecionado(s)</div>
+  <div id="tags_selecionados"></div>
+</div>
+
+<!-- CLIENTE -->
+<div class="section">
+  <div class="section-title"><i class="bi bi-person me-1"></i>Cliente (Noiva)</div>
+  <input type="hidden" name="cliente_id" id="app_cliente_id">
+  <div class="mb-2 position-relative">
+    <input type="text" name="nome_cliente" id="app_nome" class="form-control" placeholder="Nome da noiva *" required autocomplete="off">
+    <div id="app_ac" class="ac-list" style="display:none"></div>
+  </div>
+  <input type="text" name="telefone" id="app_tel" class="form-control mb-2" placeholder="Telefone / WhatsApp">
+  <input type="text" name="cpf" id="app_cpf" class="form-control mb-2" placeholder="CPF (opcional)">
+  <input type="text" name="endereco" id="app_end" class="form-control" placeholder="Endereço">
+</div>
+
+<!-- MEDIDAS -->
+<div class="section">
+  <div class="section-title"><i class="bi bi-rulers me-1"></i>Medidas</div>
+  <select name="tipo_evento" class="form-select mb-2"><option value="Casamento">Casamento</option><option value="Debutante">Debutante</option><option value="Outro">Outro</option></select>
+  <div class="row g-2">
+    <div class="col-6"><input type="text" name="busto" class="form-control" placeholder="Busto (cm)"></div>
+    <div class="col-6"><input type="text" name="cintura" class="form-control" placeholder="Cintura (cm)"></div>
+    <div class="col-6"><input type="text" name="quadril" class="form-control" placeholder="Quadril (cm)"></div>
+    <div class="col-6"><input type="text" name="barra" class="form-control" placeholder="Barra (cm)"></div>
+    <div class="col-6"><input type="text" name="alca" class="form-control" placeholder="Alça (cm)"></div>
+    <div class="col-6"><input type="text" name="manga" class="form-control" placeholder="Manga (cm)"></div>
+  </div>
+  <textarea name="obs_medidas" class="form-control mt-2" rows="2" placeholder="Observações..."></textarea>
+</div>
+
+<!-- PAGAMENTO -->
+<div class="section">
+  <div class="section-title"><i class="bi bi-cash me-1"></i>Pagamento</div>
+  <input type="number" step="0.01" name="valor_total" id="app_vt" class="form-control mb-2" placeholder="Valor Total (R$) *" required>
+  <input type="number" step="0.01" name="valor_sinal" id="app_vs" class="form-control mb-2" placeholder="Sinal/Entrada (R$)">
+  <select name="forma_pagamento" class="form-select mb-2">
+    <option value="pix">PIX</option><option value="dinheiro">Dinheiro</option>
+    <option value="cartao_credito">Cartão Crédito</option><option value="cartao_debito">Cartão Débito</option>
+  </select>
+  <div class="p-2 rounded text-center" style="background:var(--rose-light)">
+    <span style="font-size:.82rem;color:var(--rose)">Saldo: <strong id="app_saldo">R$ 0,00</strong></span>
+  </div>
+</div>
+
+</form><!-- bottom buttons outside for layout -->
+
+<!-- BOTTOM BUTTONS -->
+<div class="bottom-btn">
+  <button type="submit" form="formApp" name="acao" value="pdf" class="btn btn-rose flex-fill"><i class="bi bi-file-pdf me-1"></i>Salvar + PDF</button>
+  <button type="submit" form="formApp" name="acao" value="novo" class="btn btn-outline-secondary flex-fill">Salvar + Novo</button>
+</div>
+
+<!-- BOTTOM SHEET VESTIDOS -->
+<div class="overlay" id="overlay" onclick="fecharSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <strong style="color:var(--rose)">Vestidos Disponíveis</strong>
+    <button type="button" class="btn-close" onclick="fecharSheet()"></button>
+  </div>
+  <div id="sheet_lista"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const selecionados = new Map();
+
+async function abrirSheet() {
+  const dr = document.getElementById('dr').value;
+  const dd = document.getElementById('dd').value;
+  if (!dr || !dd) { alert('Informe as datas primeiro.'); return; }
+  document.getElementById('sheet_lista').innerHTML = '<div class="text-center py-4 text-muted">Carregando...</div>';
+  document.getElementById('overlay').style.display = '';
+  document.getElementById('sheet').classList.add('open');
+  const res = await fetch(`/estoque/disponibilidade?inicio=${dr}&fim=${dd}`);
+  const pecas = await res.json();
+  const livres = pecas.filter(p => p.livre);
+  if (!livres.length) {
+    document.getElementById('sheet_lista').innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bag-x" style="font-size:2rem;color:var(--rose-mid)"></i><p>Nenhum vestido disponível.</p></div>';
+    return;
+  }
+  document.getElementById('sheet_lista').innerHTML = livres.map(p => `
+    <div class="vestido-item ${selecionados.has(p.id)?'selected':''}" onclick="toggleVestido(${JSON.stringify(p).replace(/"/g,'&quot;')},this)">
+      <div class="d-flex justify-content-between">
+        <div><strong style="color:var(--rose)">${p.codigo}</strong> <span style="font-size:.85rem">${p.modelo||''} — ${p.cor||''}</span>
+          <div style="font-size:.78rem;color:#888">Tam: ${p.tamanho||'N/D'}</div>
+          ${p.descricao?`<div style='font-size:.75rem;color:#aaa'>${p.descricao}</div>`:''}
+        </div>
+        <strong style="color:var(--rose)">R$ ${p.preco_aluguel.toFixed(2).replace('.',',')}</strong>
+      </div>
+    </div>`).join('');
+}
+
+function fecharSheet() {
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('sheet').classList.remove('open');
+  atualizarTags();
+}
+
+function toggleVestido(p, el) {
+  if (selecionados.has(p.id)) { selecionados.delete(p.id); el.classList.remove('selected'); }
+  else { selecionados.set(p.id, p); el.classList.add('selected'); }
+  const total = [...selecionados.values()].reduce((s,x)=>s+x.preco_aluguel,0);
+  document.getElementById('app_vt').value = total.toFixed(2);
+  calcSaldo();
+}
+
+function atualizarTags() {
+  document.querySelectorAll('.peca-id-input').forEach(e=>e.remove());
+  selecionados.forEach((p,id)=>{
+    const inp = document.createElement('input');
+    inp.type='hidden'; inp.name='pecas_ids'; inp.value=id; inp.className='peca-id-input';
+    document.getElementById('formApp').appendChild(inp);
+  });
+  const sec = document.getElementById('sec_selecionados');
+  if (!selecionados.size) { sec.style.display='none'; return; }
+  sec.style.display='';
+  document.getElementById('tags_selecionados').innerHTML = [...selecionados.values()]
+    .map(p=>`<span class="badge-selecionado me-1 mb-1">${p.codigo}</span>`).join('');
+}
+
+['app_vt','app_vs'].forEach(id=>document.getElementById(id).addEventListener('input',calcSaldo));
+function calcSaldo(){
+  const t=parseFloat(document.getElementById('app_vt').value)||0;
+  const s=parseFloat(document.getElementById('app_vs').value)||0;
+  document.getElementById('app_saldo').textContent='R$ '+Math.max(0,t-s).toFixed(2).replace('.',',');
+}
+
+// Autocomplete
+let acT;
+document.getElementById('app_nome').addEventListener('input',function(){
+  clearTimeout(acT); document.getElementById('app_cliente_id').value='';
+  acT=setTimeout(()=>acBuscar(this.value),250);
+});
+async function acBuscar(q){
+  const ac=document.getElementById('app_ac');
+  if(q.length<2){ac.style.display='none';return;}
+  const r=await fetch(`/clientes/buscar?q=${encodeURIComponent(q)}`);
+  const cs=await r.json();
+  if(!cs.length){ac.style.display='none';return;}
+  ac.innerHTML=cs.map(c=>`<div class="ac-item" data-id="${c.id}" data-nome="${c.nome}" data-tel="${c.telefone}" data-cpf="${c.cpf}" data-end="${c.endereco}">${c.nome} <span style="font-size:.75rem;color:#aaa">${c.telefone}</span></div>`).join('');
+  ac.style.display='';
+  ac.querySelectorAll('.ac-item').forEach(el=>el.addEventListener('click',()=>{
+    document.getElementById('app_cliente_id').value=el.dataset.id;
+    document.getElementById('app_nome').value=el.dataset.nome;
+    document.getElementById('app_tel').value=el.dataset.tel;
+    document.getElementById('app_cpf').value=el.dataset.cpf;
+    document.getElementById('app_end').value=el.dataset.end;
+    ac.style.display='none';
+  }));
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#app_nome'))document.getElementById('app_ac').style.display='none';});
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Editar Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
+{% block topbar_title %}<i class="bi bi-pencil me-2" style="color:var(--rose)"></i>Editar Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-header"><h6>Editar Dados do Contrato</h6></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Data de Retirada</label>
+          <input type="date" name="data_retirada" class="form-control" value="{{ contrato.data_retirada.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Data de Devolução</label>
+          <input type="date" name="data_devolucao" class="form-control" value="{{ contrato.data_devolucao.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Valor Total (R$)</label>
+          <input type="number" step="0.01" name="valor_total" class="form-control" value="{{ contrato.valor_total }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Observações / Medidas</label>
+          <textarea name="observacoes" class="form-control" rows="6">{{ contrato.observacoes }}</textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-rose px-4">Salvar Alterações</button>
+          <a href="{{ url_for('contratos.detalhe', id=contrato.id) }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

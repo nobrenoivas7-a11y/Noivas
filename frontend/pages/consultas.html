@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Consultas — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-search me-2" style="color:var(--rose)"></i>Consultas{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:800px">
+  <div class="card-header"><h6>Busca Unificada</h6></div>
+  <div class="card-body">
+    <div class="input-group mb-4">
+      <span class="input-group-text" style="background:var(--rose-light);border-color:var(--border)"><i class="bi bi-search" style="color:var(--rose)"></i></span>
+      <input type="text" id="busca_input" class="form-control" placeholder="Digite código do vestido, nome ou telefone da cliente..." autocomplete="off">
+    </div>
+    <div id="resultados"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let timer;
+document.getElementById('busca_input').addEventListener('input', function() {
+  clearTimeout(timer);
+  const q = this.value.trim();
+  if (q.length < 2) { document.getElementById('resultados').innerHTML = ''; return; }
+  timer = setTimeout(() => buscar(q), 250);
+});
+
+async function buscar(q) {
+  const res = await fetch(`/consultas/buscar?q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+  let html = '';
+
+  if (data.pecas.length) {
+    html += '<h6 style="color:var(--rose)" class="mb-2"><i class="bi bi-bag-heart me-1"></i>Vestidos</h6>';
+    html += '<div class="table-responsive mb-4"><table class="table table-hover"><thead><tr><th>Código</th><th>Modelo</th><th>Cor</th><th>Tamanho</th><th>Status</th></tr></thead><tbody>';
+    data.pecas.forEach(p => {
+      const badge = p.status === 'disponivel' ? 'style="background:#d1fae5;color:#065f46"' : 'style="background:#fef3c7;color:#92400e"';
+      html += `<tr><td class="fw-bold" style="color:var(--rose)">${p.codigo}</td><td>${p.modelo||''}</td><td>${p.cor||''}</td><td>${p.tamanho||''}</td><td><span class="badge" ${badge}>${p.status}</span></td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+
+  if (data.clientes.length) {
+    html += '<h6 style="color:var(--rose)" class="mb-2"><i class="bi bi-people me-1"></i>Clientes</h6>';
+    html += '<div class="table-responsive"><table class="table table-hover"><thead><tr><th>Nome</th><th>Telefone</th><th>Contratos</th><th></th></tr></thead><tbody>';
+    data.clientes.forEach(c => {
+      html += `<tr><td class="fw-bold">${c.nome}</td><td>${c.telefone}</td><td><span class="badge" style="background:var(--rose-light);color:var(--rose-dark)">${c.total_contratos}</span></td><td><a href="/clientes/${c.id}" class="btn btn-sm btn-rose-outline">Ver</a></td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+
+  if (!data.pecas.length && !data.clientes.length) {
+    html = '<div class="text-center text-muted py-4"><i class="bi bi-search" style="font-size:2rem;color:var(--rose-mid)"></i><p class="mt-2">Nenhum resultado encontrado.</p></div>';
+  }
+
+  document.getElementById('resultados').innerHTML = html;
+}
+</script>
+{% endblock %}

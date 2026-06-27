@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Nobre Elegancy</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body { background: linear-gradient(135deg,#FAF6F7,#F5E6E8); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card { border-radius:20px; border:1px solid #E8C5C9; box-shadow:0 8px 30px rgba(183,110,121,.15); max-width:360px; width:100%; }
+    .logo { font-size:3rem; color:#B76E79; }
+    .btn-rose { background:#B76E79; color:#fff; border:none; }
+    .btn-rose:hover { background:#8B3A47; color:#fff; }
+    .form-control:focus { border-color:#B76E79; box-shadow:0 0 0 .2rem rgba(183,110,121,.2); }
+  </style>
+</head>
+<body>
+  <div class="card p-4">
+    <div class="text-center mb-4">
+      <div class="logo">✿</div>
+      <h2 style="color:#B76E79;font-weight:700;font-size:1.2rem">NOBRE ELEGANCY</h2>
+      <p class="text-muted" style="font-size:.85rem">App para Funcionárias</p>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} mb-3 py-2" style="font-size:.85rem">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+    <form method="POST">
+      <div class="mb-3">
+        <input type="text" name="email" class="form-control" placeholder="Usuário" required autofocus>
+      </div>
+      <div class="mb-4">
+        <input type="password" name="senha" class="form-control" placeholder="Senha" required>
+      </div>
+      <button type="submit" class="btn btn-rose w-100 py-2">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>

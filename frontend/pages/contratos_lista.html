@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Contratos — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-file-earmark-text me-2" style="color:var(--rose)"></i>Contratos{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+    <h6 class="m-0">Todos os Contratos</h6>
+    <div class="d-flex gap-2 flex-wrap">
+      <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar cliente..." style="width:180px">
+        <select name="status" class="form-select form-select-sm" style="width:140px">
+          <option value="">Todos</option>
+          <option value="ativo" {% if status_filtro=='ativo' %}selected{% endif %}>Ativo</option>
+          <option value="atrasado" {% if status_filtro=='atrasado' %}selected{% endif %}>Atrasado</option>
+          <option value="devolvido" {% if status_filtro=='devolvido' %}selected{% endif %}>Devolvido</option>
+          <option value="cancelado" {% if status_filtro=='cancelado' %}selected{% endif %}>Cancelado</option>
+        </select>
+        <button class="btn btn-rose btn-sm">Filtrar</button>
+      </form>
+      <a href="{{ url_for('contratos.novo') }}" class="btn btn-rose btn-sm"><i class="bi bi-plus me-1"></i>Novo</a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if contratos %}
+    <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Cliente</th><th>Vestido</th><th>Retirada</th><th>Devolução</th><th>Total</th><th>Saldo</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in contratos %}
+        <tr>
+          <td><a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="fw-bold text-decoration-none" style="color:var(--rose)">#{{ '%04d'|format(c.id) }}</a></td>
+          <td>{{ c.cliente.nome }}</td>
+          <td style="font-size:.8rem">{% for i in c.itens %}{{ i.peca.codigo }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+          <td>{{ c.data_retirada.strftime('%d/%m/%Y') }}</td>
+          <td>{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
+          <td>R$ {{ '%.2f'|format(c.valor_total)|replace('.',',') }}</td>
+          <td class="fw-bold" style="color:var(--rose)">R$ {{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}</td>
+          <td>
+            <span class="badge badge-{{ c.status }}">{{ c.status|title }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('contratos.pdf', id=c.id) }}" target="_blank" class="btn btn-sm btn-rose-outline" title="PDF"><i class="bi bi-file-pdf"></i></a>
+              {% if c.cliente.telefone %}
+              <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ c.cliente.nome|urlencode }},+seu+contrato+%23{{ '%04d'|format(c.id) }}+está+em+aberto.+Saldo:+R$+{{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+              {% endif %}
+              <form method="POST" action="{{ url_for('contratos.alterar_status', id=c.id) }}" class="d-inline">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto">
+                  <option value="ativo" {% if c.status=='ativo' %}selected{% endif %}>Ativo</option>
+                  <option value="devolvido" {% if c.status=='devolvido' %}selected{% endif %}>Devolvido</option>
+                  <option value="cancelado" {% if c.status=='cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-file-earmark-x" style="font-size:2.5rem;color:var(--rose-mid)"></i>
+      <p class="mt-2">Nenhum contrato encontrado.</p>
+      <a href="{{ url_for('contratos.novo') }}" class="btn btn-rose btn-sm">Criar primeiro contrato</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

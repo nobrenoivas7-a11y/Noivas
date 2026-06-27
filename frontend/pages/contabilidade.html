@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Contabilidade — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Contabilidade — {{ mes_nome }} {{ ano }}{% endblock %}
+
+{% block content %}
+{% set pm = mes - 1 if mes > 1 else 12 %}
+{% set pa = ano if mes > 1 else ano - 1 %}
+{% set nm = mes + 1 if mes < 12 else 1 %}
+{% set na = ano if mes < 12 else ano + 1 %}
+
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <a href="?mes={{ pm }}&ano={{ pa }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-chevron-left"></i></a>
+  <span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--rose-light)">{{ mes_nome }} {{ ano }}</span>
+  <a href="?mes={{ nm }}&ano={{ na }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-chevron-right"></i></a>
+  <a href="{{ url_for('contabilidade.relatorio_pdf', mes=mes, ano=ano) }}" target="_blank" class="btn btn-rose btn-sm ms-auto"><i class="bi bi-file-pdf me-1"></i>PDF do Mês</a>
+  <a href="{{ url_for('contabilidade.despesas', mes=mes, ano=ano) }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-wallet2 me-1"></i>Despesas</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:var(--green)">
+      <div class="stat-label">Receita</div>
+      <div class="stat-value" style="color:var(--green);font-size:1.4rem">R$ {{ '%.2f'|format(receita)|replace('.',',') }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:var(--red)">
+      <div class="stat-label">Despesas</div>
+      <div class="stat-value" style="color:var(--red);font-size:1.4rem">R$ {{ '%.2f'|format(total_despesas)|replace('.',',') }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:var(--gold)">
+      <div class="stat-label">Lucro Líquido</div>
+      <div class="stat-value" style="color:var(--gold);font-size:1.4rem">R$ {{ '%.2f'|format(lucro)|replace('.',',') }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-cash me-2" style="color:var(--gold)"></i>Por Forma de Pagamento</h6></div>
+      <div class="card-body">
+        {% for forma, val in por_forma.items() %}
+        <div class="d-flex justify-content-between mb-1">
+          <span style="font-size:.8rem;color:var(--text-sec)">{{ forma|replace('_',' ')|title }}</span>
+          <span style="color:var(--gold);font-weight:600;font-size:.82rem">R$ {{ '%.2f'|format(val)|replace('.',',') }}</span>
+        </div>
+        <div class="mb-2" style="height:3px;background:var(--border);border-radius:2px">
+          <div style="height:3px;border-radius:2px;background:linear-gradient(90deg,var(--rose),var(--gold));width:{{ (val/receita*100)|int if receita else 0 }}%"></div>
+        </div>
+        {% else %}
+        <p style="color:var(--text-dim);font-size:.82rem">Sem pagamentos no mês.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-receipt me-2" style="color:var(--rose)"></i>Pagamentos do Mês</h6></div>
+      <div class="card-body p-0">
+        {% if pagamentos %}
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Data</th><th>Cliente</th><th>Forma</th><th>Tipo</th><th>Valor</th></tr></thead>
+          <tbody>
+            {% for p in pagamentos %}
+            <tr>
+              <td style="color:var(--text-dim)">{{ p.data.strftime('%d/%m/%Y') }}</td>
+              <td>{{ p.contrato.cliente.nome }}</td>
+              <td style="color:var(--text-dim)">{{ p.forma|replace('_',' ')|title }}</td>
+              <td style="color:var(--text-dim)">{{ p.tipo|title }}</td>
+              <td style="color:var(--rose-light);font-weight:600">R$ {{ '%.2f'|format(p.valor)|replace('.',',') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4" style="color:var(--text-dim)">Nenhum pagamento neste mês.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Clientes — Nobre Elegancy{% endblock %}
+{% block topbar_title %}<i class="bi bi-people me-2" style="color:var(--rose)"></i>Clientes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <form class="d-flex gap-2" method="GET">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar por nome ou telefone..." style="width:260px">
+    <button class="btn btn-rose btn-sm">Buscar</button>
+  </form>
+  <a href="{{ url_for('clientes.novo') }}" class="btn btn-rose btn-sm"><i class="bi bi-plus me-1"></i>Nova Cliente</a>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    {% if clientes %}
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Contratos</th><th></th></tr></thead>
+      <tbody>
+        {% for c in clientes %}
+        <tr>
+          <td><a href="{{ url_for('clientes.detalhe', id=c.id) }}" class="text-decoration-none fw-bold" style="color:var(--rose)">{{ c.nome }}</a></td>
+          <td style="font-size:.85rem">{{ c.cpf or '—' }}</td>
+          <td style="font-size:.85rem">{{ c.telefone or '—' }}</td>
+          <td><span class="badge" style="background:var(--rose-light);color:var(--rose-dark)">{{ c.contratos|length }}</span></td>
+          <td>
+            <a href="{{ url_for('clientes.editar', id=c.id) }}" class="btn btn-sm btn-rose-outline"><i class="bi bi-pencil"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-people" style="font-size:2.5rem;color:var(--rose-mid)"></i>
+      <p class="mt-2">Nenhuma cliente encontrada.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
