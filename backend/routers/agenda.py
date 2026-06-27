@@ -33,3 +33,26 @@ def index():
     db.session.commit()
 
     return render_template('agenda.html', contratos=contratos, periodo=periodo, hoje=hoje, inicio=inicio, fim=fim)
+
+@bp.route('/provas')
+@login_required
+def provas():
+    periodo = request.args.get('periodo', 'semana')
+    hoje = date.today()
+    if periodo == 'hoje':
+        inicio = hoje
+        fim = hoje
+    elif periodo == 'mes':
+        inicio = hoje.replace(day=1)
+        fim = (hoje.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+    else:
+        inicio = hoje
+        fim = hoje + timedelta(days=7)
+
+    contratos = Contrato.query.join(Cliente).filter(
+        Contrato.data_prova >= inicio,
+        Contrato.data_prova <= fim,
+        Contrato.status.in_(['ativo', 'atrasado', 'devolvido'])
+    ).order_by(Contrato.data_prova).all()
+
+    return render_template('agenda_provas.html', contratos=contratos, periodo=periodo, hoje=hoje, inicio=inicio, fim=fim)
