@@ -244,3 +244,15 @@ async function buscarClientes(q) {
     e.preventDefault();
     document.getElementById('cliente_id').value = a.dataset.id;
     document.getElementById('nome_cliente').value = a.dataset.nome;
+document.getElementById('cpf').value = a.dataset.cpf;
+        document.getElementById('telefone').value = a.dataset.tel;
+        document.getElementById('email_cliente').value = a.dataset.email;
+        document.getElementById('endereco').value = a.dataset.end;
+        lista.style.display = 'none';
+      }));
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#nome_cliente')) document.getElementById('autocomplete_list').style.display = 'none';
+    });
+    </script>
+    {% endblock %}
