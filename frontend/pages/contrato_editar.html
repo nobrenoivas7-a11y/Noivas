@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Editar Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
-{% block topbar_title %}<i class="bi bi-pencil me-2" style="color:var(--rose)"></i>Editar Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
+{% block topbar_title %}Editar Contrato #{{ '%04d'|format(contrato.id) }}{% endblock %}
 
 {% block content %}
 <div class="card" style="max-width:700px">
@@ -8,13 +8,17 @@
   <div class="card-body">
     <form method="POST">
       <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label">Data de Retirada</label>
           <input type="date" name="data_retirada" class="form-control" value="{{ contrato.data_retirada.strftime('%Y-%m-%d') }}" required>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label">Data de Devolução</label>
           <input type="date" name="data_devolucao" class="form-control" value="{{ contrato.data_devolucao.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Data de Prova</label>
+          <input type="date" name="data_prova" class="form-control" value="{{ contrato.data_prova.strftime('%Y-%m-%d') if contrato.data_prova else '' }}">
         </div>
         <div class="col-md-6">
           <label class="form-label">Valor Total (R$)</label>
