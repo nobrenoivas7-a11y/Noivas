@@ -5,7 +5,6 @@ from backend.models.usuario import Usuario
 
 bp = Blueprint('auth', __name__)
 
-@bp.route('/')
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
