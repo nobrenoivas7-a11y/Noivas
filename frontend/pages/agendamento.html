@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Agendamentos — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Agendamentos{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- FORMULÁRIO NOVO AGENDAMENTO -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-plus-circle me-2" style="color:var(--rose)"></i>Novo Agendamento</h6></div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('agendamento.novo') }}">
+          <div class="mb-2">
+            <label class="form-label">Nome da Noiva *</label>
+            <input type="text" name="nome" class="form-control" placeholder="Nome completo" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Telefone / WhatsApp</label>
+            <input type="text" name="telefone" class="form-control" placeholder="(85) 99999-9999">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Data da Visita *</label>
+            <input type="date" name="data_visita" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Dia do Evento</label>
+            <input type="date" name="data_evento" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Observações</label>
+            <textarea name="observacoes" class="form-control" rows="3" placeholder="Estilo preferido, orçamento, acompanhantes..."></textarea>
+          </div>
+          <button class="btn btn-rose w-100">Agendar Visita</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA DE AGENDAMENTOS -->
+  <div class="col-md-8">
+    <!-- Filtro período -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+      <a href="?periodo=hoje" class="btn btn-sm {{ 'btn-rose' if periodo=='hoje' else 'btn-rose-outline' }}">Hoje</a>
+      <a href="?periodo=semana" class="btn btn-sm {{ 'btn-rose' if periodo=='semana' else 'btn-rose-outline' }}">Esta Semana</a>
+      <a href="?periodo=mes" class="btn btn-sm {{ 'btn-rose' if periodo=='mes' else 'btn-rose-outline' }}">Este Mês</a>
+      <span class="align-self-center" style="font-size:.78rem;color:var(--text-dim)">{{ inicio.strftime('%d/%m') }} → {{ fim.strftime('%d/%m/%Y') }}</span>
+    </div>
+
+    <!-- Agendamentos do período -->
+    <div class="card mb-3">
+      <div class="card-header"><h6><i class="bi bi-calendar-check me-2" style="color:var(--rose)"></i>Visitas no Período</h6></div>
+      <div class="card-body p-0">
+        {% if agendamentos %}
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr><th>Nome</th><th>Visita</th><th>Evento</th><th>Status</th><th>Obs</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for ag in agendamentos %}
+            <tr {% if ag.data_visita == hoje %}style="border-left:3px solid var(--rose)"{% endif %}>
+              <td>
+                <div class="fw-bold" style="color:var(--rose-light)">{{ ag.nome }}</div>
+                {% if ag.telefone %}
+                <div style="font-size:.75rem;color:var(--text-dim)">{{ ag.telefone }}</div>
+                {% endif %}
+              </td>
+              <td>
+                <span style="color:var(--rose-light)">{{ ag.data_visita.strftime('%d/%m/%Y') }}</span>
+                {% if ag.data_visita == hoje %}
+                <span class="badge ms-1" style="background:var(--rose);color:#fff;font-size:.6rem">HOJE</span>
+                {% endif %}
+              </td>
+              <td style="color:var(--text-dim)">{{ ag.data_evento.strftime('%d/%m/%Y') if ag.data_evento else '—' }}</td>
+              <td>
+                {% if ag.status == 'agendado' %}
+                  <span class="badge" style="background:rgba(201,169,110,.15);color:var(--gold);border:1px solid rgba(201,169,110,.3)">Agendado</span>
+                {% elif ag.status == 'atendido' %}
+                  <span class="badge" style="background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)">Atendido</span>
+                {% elif ag.status == 'fechou' %}
+                  <span class="badge" style="background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3)">Fechou Contrato</span>
+                {% elif ag.status == 'cancelado' %}
+                  <span class="badge" style="background:rgba(156,163,175,.1);color:#9ca3af;border:1px solid rgba(156,163,175,.2)">Cancelado</span>
+                {% endif %}
+              </td>
+              <td style="font-size:.75rem;color:var(--text-dim);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ag.observacoes or '—' }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  {% if ag.telefone %}
+                  <a href="https://wa.me/55{{ ag.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ ag.nome|urlencode }},+lembrando+que+sua+visita+está+agendada+para+{{ ag.data_visita.strftime('%d/%m/%Y') }}+na+Nobre+Elegancy+Noivas!" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp"></i></a>
+                  {% endif %}
+                  <a href="{{ url_for('agendamento.editar', id=ag.id) }}" class="btn btn-sm btn-rose-outline"><i class="bi bi-pencil"></i></a>
+                  <form method="POST" action="{{ url_for('agendamento.excluir', id=ag.id) }}" onsubmit="return confirm('Excluir?')">
+                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4" style="color:var(--text-dim)">
+          <i class="bi bi-calendar-x" style="font-size:2rem;color:var(--border)"></i>
+          <p class="mt-2 mb-0">Nenhuma visita agendada neste período.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Histórico recente -->
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-clock-history me-2" style="color:var(--text-dim)"></i>Histórico Recente</h6></div>
+      <div class="card-body p-0">
+        {% if todos %}
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr><th>Nome</th><th>Visita</th><th>Evento</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for ag in todos %}
+            <tr>
+              <td>
+                <div style="color:var(--text)">{{ ag.nome }}</div>
+                {% if ag.telefone %}<div style="font-size:.72rem;color:var(--text-dim)">{{ ag.telefone }}</div>{% endif %}
+              </td>
+              <td style="color:var(--text-dim)">{{ ag.data_visita.strftime('%d/%m/%Y') }}</td>
+              <td style="color:var(--text-dim)">{{ ag.data_evento.strftime('%d/%m/%Y') if ag.data_evento else '—' }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('agendamento.alterar_status', id=ag.id) }}">
+                  <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;min-width:130px">
+                    <option value="agendado" {% if ag.status=='agendado' %}selected{% endif %}>Agendado</option>
+                    <option value="atendido" {% if ag.status=='atendido' %}selected{% endif %}>Atendido</option>
+                    <option value="fechou" {% if ag.status=='fechou' %}selected{% endif %}>Fechou Contrato</option>
+                    <option value="cancelado" {% if ag.status=='cancelado' %}selected{% endif %}>Cancelado</option>
+                  </select>
+                </form>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  {% if ag.telefone %}
+                  <a href="https://wa.me/55{{ ag.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp"></i></a>
+                  {% endif %}
+                  <a href="{{ url_for('agendamento.editar', id=ag.id) }}" class="btn btn-sm btn-rose-outline"><i class="bi bi-pencil"></i></a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4" style="color:var(--text-dim)">Nenhum agendamento ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
