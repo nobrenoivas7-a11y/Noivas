@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Ateliê — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Ateliê de Confecção{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="--accent-color:var(--rose)">
+      <div class="stat-label">Total de Pedidos</div>
+      <div class="stat-value">{{ total }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="--accent-color:var(--gold)">
+      <div class="stat-label">Em Produção</div>
+      <div class="stat-value" style="color:var(--gold)">{{ em_producao }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="--accent-color:var(--green)">
+      <div class="stat-label">Prontos</div>
+      <div class="stat-value" style="color:var(--green)">{{ prontos }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="--accent-color:var(--red)">
+      <div class="stat-label">Atrasados</div>
+      <div class="stat-value" style="color:var(--red)">{{ atrasados }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros + Novo -->
+<div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+  <a href="?status=" class="btn btn-sm {{ 'btn-rose' if not status_filtro else 'btn-rose-outline' }}">Todos</a>
+  {% for key, label in status_labels.items() %}
+  <a href="?status={{ key }}" class="btn btn-sm {{ 'btn-rose' if status_filtro == key else 'btn-rose-outline' }}">{{ label }}</a>
+  {% endfor %}
+  <a href="{{ url_for('atelie.novo') }}" class="btn btn-rose btn-sm ms-auto"><i class="bi bi-plus me-1"></i>Novo Pedido</a>
+</div>
+
+<!-- Lista -->
+<div class="card">
+  <div class="card-body p-0">
+    {% if pedidos %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>#</th><th>Cliente</th><th>Modelo</th><th>Costureira</th><th>Prova</th><th>Entrega</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in pedidos %}
+        <tr>
+          <td><a href="{{ url_for('atelie.detalhe', id=p.id) }}" class="contract-id">#{{ '%04d'|format(p.id) }}</a></td>
+          <td>
+            <div class="fw-bold" style="color:var(--text)">{{ p.nome_cliente }}</div>
+            {% if p.telefone %}<div style="font-size:.75rem;color:var(--text-dim)">{{ p.telefone }}</div>{% endif %}
+          </td>
+          <td style="color:var(--text-sec)">{{ p.modelo or '—' }}</td>
+          <td style="color:var(--text-sec)">{{ p.costureira or '—' }}</td>
+          <td style="color:var(--text-sec)">{{ p.data_prova.strftime('%d/%m/%Y') if p.data_prova else '—' }}</td>
+          <td>
+            {% if p.data_entrega %}
+              {% if p.dias_para_entrega is not none and p.dias_para_entrega < 0 and p.status != 'entregue' %}
+                <span style="color:var(--red);font-weight:600">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
+                <span class="badge ms-1" style="background:#fee2e2;color:#991b1b;font-size:.65rem">ATRASADO</span>
+              {% elif p.dias_para_entrega is not none and p.dias_para_entrega <= 3 and p.status != 'entregue' %}
+                <span style="color:var(--gold);font-weight:600">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
+              {% else %}
+                <span style="color:var(--text-sec)">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <span class="badge" style="
+              {% if p.status == 'pronto' %}background:#d1fae5;color:#065f46;border:1px solid #6ee7b7
+              {% elif p.status == 'entregue' %}background:#dbeafe;color:#1e40af;border:1px solid #93c5fd
+              {% elif p.status in ['em_costura','com_bordadeira','ajustes_finais'] %}background:#fef3c7;color:#92400e;border:1px solid #fcd34d
+              {% else %}background:var(--rose-glow);color:var(--rose-dark);border:1px solid var(--border){% endif %}
+            ">{{ p.status_label }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('atelie.detalhe', id=p.id) }}" class="btn btn-sm btn-rose-outline"><i class="bi bi-eye"></i></a>
+              {% if p.telefone %}
+              <a href="https://wa.me/55{{ p.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp"></i></a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5" style="color:var(--text-dim)">
+      <i class="bi bi-scissors" style="font-size:2.5rem;color:var(--border)"></i>
+      <p class="mt-2">Nenhum pedido de confecção ainda.</p>
+      <a href="{{ url_for('atelie.novo') }}" class="btn btn-rose btn-sm">Criar primeiro pedido</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
