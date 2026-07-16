@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Editar Pedido #{{ '%04d'|format(pedido.id) }} — Ateliê{% endblock %}
+{% block topbar_title %}Editar Pedido #{{ '%04d'|format(pedido.id) }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-header"><h6>Editar Pedido — {{ pedido.nome_cliente }}</h6></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label">Nome da Cliente *</label>
+          <input type="text" name="nome_cliente" class="form-control" value="{{ pedido.nome_cliente }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Telefone</label>
+          <input type="text" name="telefone" class="form-control" value="{{ pedido.telefone or '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Modelo / Estilo</label>
+          <input type="text" name="modelo" class="form-control" value="{{ pedido.modelo or '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Costureira</label>
+          <input type="text" name="costureira" class="form-control" value="{{ pedido.costureira or '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descrição do Vestido</label>
+          <textarea name="descricao" class="form-control" rows="3">{{ pedido.descricao or '' }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Data da Prova</label>
+          <input type="date" name="data_prova" class="form-control" value="{{ pedido.data_prova.strftime('%Y-%m-%d') if pedido.data_prova else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Data de Entrega</label>
+          <input type="date" name="data_entrega" class="form-control" value="{{ pedido.data_entrega.strftime('%Y-%m-%d') if pedido.data_entrega else '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Observações</label>
+          <textarea name="observacoes" class="form-control" rows="2">{{ pedido.observacoes or '' }}</textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-rose px-4">Salvar Alterações</button>
+          <a href="{{ url_for('atelie.detalhe', id=pedido.id) }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
