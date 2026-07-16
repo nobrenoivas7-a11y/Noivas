@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Pedido #{{ '%04d'|format(pedido.id) }} — Ateliê{% endblock %}
+{% block topbar_title %}Ateliê — Pedido #{{ '%04d'|format(pedido.id) }}{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="{{ url_for('atelie.editar', id=pedido.id) }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>
+  {% if pedido.telefone %}
+  <a href="https://wa.me/55{{ pedido.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
+  {% endif %}
+  <a href="{{ url_for('atelie.index') }}" class="btn btn-rose-outline btn-sm ms-auto"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
+  {% if current_user.is_admin %}
+  <form method="POST" action="{{ url_for('atelie.excluir', id=pedido.id) }}" onsubmit="return confirm('Excluir este pedido?')">
+    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <!-- INFO PRINCIPAL -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-person me-2"></i>Cliente</h6></div>
+      <div class="card-body">
+        <p class="mb-1 fw-bold" style="color:var(--rose-dark);font-size:1rem">{{ pedido.nome_cliente }}</p>
+        {% if pedido.telefone %}<p class="mb-1" style="font-size:.82rem;color:var(--text-sec)"><i class="bi bi-phone me-1"></i>{{ pedido.telefone }}</p>{% endif %}
+        {% if pedido.costureira %}<p class="mb-1" style="font-size:.82rem;color:var(--text-sec)"><i class="bi bi-scissors me-1"></i>{{ pedido.costureira }}</p>{% endif %}
+        {% if pedido.data_prova %}<p class="mb-1" style="font-size:.82rem;color:var(--text-sec)"><i class="bi bi-calendar me-1"></i>Prova: {{ pedido.data_prova.strftime('%d/%m/%Y') }}</p>{% endif %}
+        {% if pedido.data_entrega %}
+        <p class="mb-0" style="font-size:.82rem;color:{{ 'var(--red)' if pedido.dias_para_entrega is not none and pedido.dias_para_entrega < 0 else 'var(--text-sec)' }}">
+          <i class="bi bi-calendar-check me-1"></i>Entrega: {{ pedido.data_entrega.strftime('%d/%m/%Y') }}
+          {% if pedido.dias_para_entrega is not none %}
+            {% if pedido.dias_para_entrega < 0 %}<span class="badge ms-1" style="background:#fee2e2;color:#991b1b;font-size:.65rem">{{ pedido.dias_para_entrega|abs }} dias atraso</span>
+            {% elif pedido.dias_para_entrega == 0 %}<span class="badge ms-1" style="background:#fef3c7;color:#92400e;font-size:.65rem">HOJE</span>
+            {% elif pedido.dias_para_entrega <= 3 %}<span class="badge ms-1" style="background:#fef3c7;color:#92400e;font-size:.65rem">{{ pedido.dias_para_entrega }} dias</span>
+            {% endif %}
+          {% endif %}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="card mt-3">
+      <div class="card-header"><h6><i class="bi bi-arrow-repeat me-2"></i>Alterar Status</h6></div>
+      <div class="card-body">
+        <div class="mb-3">
+          <span class="badge fs-6" style="
+            {% if pedido.status == 'pronto' %}background:#d1fae5;color:#065f46
+            {% elif pedido.status == 'entregue' %}background:#dbeafe;color:#1e40af
+            {% else %}background:var(--rose-glow);color:var(--rose-dark){% endif %}
+          ">{{ pedido.status_label }}</span>
+        </div>
+        <form method="POST" action="{{ url_for('atelie.alterar_status', id=pedido.id) }}">
+          <div class="mb-2">
+            <select name="status" class="form-select form-select-sm">
+              {% for key, label in status_labels.items() %}
+              <option value="{{ key }}" {% if pedido.status == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <input type="text" name="autor" class="form-control form-control-sm" placeholder="Seu nome" value="{{ current_user.nome }}">
+          </div>
+          <div class="mb-2">
+            <textarea name="mensagem" class="form-control form-control-sm" rows="2" placeholder="Observação sobre a mudança de status..."></textarea>
+          </div>
+          <button class="btn btn-rose btn-sm w-100">Atualizar Status</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODELO -->
+    {% if pedido.modelo or pedido.descricao %}
+    <div class="card mt-3">
+      <div class="card-header"><h6><i class="bi bi-bag-heart me-2"></i>Vestido</h6></div>
+      <div class="card-body">
+        {% if pedido.modelo %}<p class="mb-1 fw-bold" style="color:var(--rose-dark)">{{ pedido.modelo }}</p>{% endif %}
+        {% if pedido.descricao %}<p class="mb-0" style="font-size:.82rem;color:var(--text-sec)">{{ pedido.descricao }}</p>{% endif %}
+        {% if pedido.observacoes %}<hr style="border-color:var(--border)"><p class="mb-0" style="font-size:.82rem;color:var(--text-dim)">{{ pedido.observacoes }}</p>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-8">
+    <!-- MATERIAIS -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0"><i class="bi bi-bag me-2"></i>Materiais</h6>
+        <button class="btn btn-rose btn-sm" data-bs-toggle="collapse" data-bs-target="#formMaterial"><i class="bi bi-plus me-1"></i>Adicionar</button>
+      </div>
+      <div class="collapse" id="formMaterial">
+        <div class="p-3" style="background:var(--card2);border-bottom:1px solid var(--border)">
+          <form method="POST" action="{{ url_for('atelie.add_material', id=pedido.id) }}">
+            <div class="row g-2">
+              <div class="col-md-4"><input type="text" name="nome" class="form-control form-control-sm" placeholder="Material *" required></div>
+              <div class="col-md-2"><input type="text" name="quantidade" class="form-control form-control-sm" placeholder="Qtd"></div>
+              <div class="col-md-2">
+                <select name="unidade" class="form-select form-select-sm">
+                  <option value="metros">metros</option>
+                  <option value="unidades">unidades</option>
+                  <option value="kg">kg</option>
+                </select>
+              </div>
+              <div class="col-md-2"><input type="text" name="cor" class="form-control form-control-sm" placeholder="Cor"></div>
+              <div class="col-md-2">
+                <select name="status" class="form-select form-select-sm">
+                  <option value="pendente">Pendente</option>
+                  <option value="em_compra">Em Compra</option>
+                  <option value="no_atelie">No Ateliê</option>
+                </select>
+              </div>
+              <div class="col-md-6"><input type="text" name="fornecedor" class="form-control form-control-sm" placeholder="Fornecedor"></div>
+              <div class="col-md-6 d-flex gap-2">
+                <button class="btn btn-rose btn-sm flex-fill">Adicionar Material</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        {% if pedido.materiais %}
+        <table class="table mb-0">
+          <thead><tr><th>Material</th><th>Qtd</th><th>Cor</th><th>Fornecedor</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for m in pedido.materiais %}
+            <tr>
+              <td class="fw-bold">{{ m.nome }}</td>
+              <td style="color:var(--text-sec)">{{ m.quantidade or '—' }} {{ m.unidade if m.quantidade else '' }}</td>
+              <td style="color:var(--text-sec)">{{ m.cor or '—' }}</td>
+              <td style="color:var(--text-sec)">{{ m.fornecedor or '—' }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('atelie.material_status', id=m.id) }}">
+                  <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto">
+                    <option value="pendente" {% if m.status=='pendente' %}selected{% endif %} style="background:#fef3c7;color:#92400e">Pendente</option>
+                    <option value="em_compra" {% if m.status=='em_compra' %}selected{% endif %}>Em Compra</option>
+                    <option value="no_atelie" {% if m.status=='no_atelie' %}selected{% endif %}>No Ateliê</option>
+                    <option value="usado" {% if m.status=='usado' %}selected{% endif %}>Usado</option>
+                  </select>
+                </form>
+              </td>
+              <td>
+                <form method="POST" action="{{ url_for('atelie.material_excluir', id=m.id) }}" onsubmit="return confirm('Remover?')">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhum material cadastrado ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-clock-history me-2"></i>Histórico de Atualizações</h6></div>
+      <div class="card-body">
+        <!-- Form nova atualização -->
+        <form method="POST" action="{{ url_for('atelie.add_historico', id=pedido.id) }}" class="mb-4">
+          <div class="mb-2">
+            <input type="text" name="autor" class="form-control form-control-sm" placeholder="Seu nome" value="{{ current_user.nome }}">
+          </div>
+          <div class="mb-2">
+            <textarea name="mensagem" class="form-control" rows="2" placeholder="O que aconteceu? O que falta? Alguma observação importante..." required></textarea>
+          </div>
+          <button class="btn btn-rose btn-sm"><i class="bi bi-send me-1"></i>Registrar Atualização</button>
+        </form>
+
+        <!-- Feed de histórico -->
+        {% if pedido.historico %}
+        <div style="border-left:2px solid var(--border);padding-left:1rem">
+          {% for h in pedido.historico|reverse %}
+          <div class="mb-3 position-relative">
+            <div style="position:absolute;left:-1.4rem;top:.2rem;width:12px;height:12px;border-radius:50%;background:{{ 'var(--rose)' if h.status_novo else 'var(--border)' }};border:2px solid #fff"></div>
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <span class="fw-bold" style="font-size:.82rem;color:var(--rose-dark)">{{ h.autor or 'Sistema' }}</span>
+              <span style="font-size:.72rem;color:var(--text-dim)">{{ h.criado_em.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+            {% if h.status_novo %}
+            <span class="badge mb-1" style="background:var(--rose-glow);color:var(--rose-dark);border:1px solid var(--border);font-size:.7rem">
+              <i class="bi bi-arrow-right me-1"></i>{{ status_labels.get(h.status_novo, h.status_novo) }}
+            </span>
+            {% endif %}
+            <p class="mb-0" style="font-size:.85rem;color:var(--text)">{{ h.mensagem }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhuma atualização ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
