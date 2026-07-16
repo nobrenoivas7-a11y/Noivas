@@ -32,7 +32,6 @@ def create_app():
     def load_user(user_id):
         return db.session.get(Usuario, int(user_id))
 
-    # Blueprints
     from backend.routers.auth import bp as auth_bp
     from backend.routers.contratos import bp as contratos_bp
     from backend.routers.estoque import bp as estoque_bp
@@ -43,6 +42,7 @@ def create_app():
     from backend.routers.consultas import bp as consultas_bp
     from backend.routers.pwa import bp as pwa_bp
     from backend.routers.agendamento import bp as agendamento_bp
+    from backend.routers.atelie import bp as atelie_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(contratos_bp)
@@ -54,6 +54,7 @@ def create_app():
     app.register_blueprint(consultas_bp)
     app.register_blueprint(pwa_bp)
     app.register_blueprint(agendamento_bp)
+    app.register_blueprint(atelie_bp)
 
     with app.app_context():
         db.create_all()
