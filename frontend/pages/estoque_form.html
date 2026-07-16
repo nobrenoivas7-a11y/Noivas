@@ -22,7 +22,7 @@
       <hr style="border-color:var(--border)">
       {% endif %}
       <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-md-8">
           <label class="form-label">Modelo *</label>
           <input type="text" name="modelo" class="form-control" value="{{ peca.modelo if peca else dados.modelo if dados else '' }}" required placeholder="Ex: Princesa, Sereia, Evasê..." list="modelos_list">
           <datalist id="modelos_list">
@@ -30,25 +30,13 @@
             <option value="Tomara-que-caia"><option value="Longo"><option value="Curto"><option value="Midi">
           </datalist>
         </div>
-        <div class="col-md-3">
-          <label class="form-label">Cor *</label>
-          <input type="text" name="cor" class="form-control" value="{{ peca.cor if peca else dados.cor if dados else '' }}" required placeholder="Ex: Branco" list="cores_list">
-          <datalist id="cores_list">
-            <option value="Branco"><option value="Marfim"><option value="Off-white"><option value="Champagne">
-            <option value="Nude"><option value="Rosa"><option value="Dourado">
-          </datalist>
-        </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label">Tamanho *</label>
           <input type="text" name="tamanho" class="form-control" value="{{ peca.tamanho if peca else dados.tamanho if dados else '' }}" required placeholder="36, 38..." list="tam_list">
           <datalist id="tam_list">
             <option value="34"><option value="36"><option value="38"><option value="40"><option value="42">
             <option value="44"><option value="46"><option value="48"><option value="P"><option value="M"><option value="G"><option value="GG">
           </datalist>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Preço de Aluguel (R$)</label>
-          <input type="number" step="0.01" name="preco_aluguel" class="form-control" value="{{ peca.preco_aluguel if peca else '' }}" placeholder="0,00">
         </div>
         <div class="col-12">
           <label class="form-label">Descrição (acessórios inclusos, tecido, detalhes)</label>
@@ -59,8 +47,9 @@
         <div class="col-12">
           <label class="form-label"><i class="bi bi-camera me-1" style="color:var(--rose)"></i>Foto do Vestido</label>
           <input type="hidden" name="foto_url" id="foto_url" value="{{ peca.foto_url if peca else '' }}">
+          <input type="hidden" name="cor" value="{{ peca.cor if peca else 'Branco' }}">
+          <input type="hidden" name="preco_aluguel" value="{{ peca.preco_aluguel if peca else '0' }}">
 
-          <!-- Preview atual -->
           {% if peca and peca.foto_url %}
           <div id="preview_atual" class="mb-2">
             <img src="{{ peca.foto_url }}" alt="Foto atual" id="img_preview" style="max-height:220px;border-radius:10px;border:1px solid var(--border);display:block">
@@ -71,28 +60,26 @@
           </div>
           {% endif %}
 
-          <!-- Botão de upload -->
           <div id="upload_area" onclick="document.getElementById('file_input').click()"
                style="border:2px dashed var(--border);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;background:var(--card2);transition:border-color .2s"
                onmouseover="this.style.borderColor='var(--rose)'"
                onmouseout="this.style.borderColor='var(--border)'">
-            <i class="bi bi-cloud-upload" style="font-size:2rem;color:var(--rose-light)"></i>
+            <i class="bi bi-cloud-upload" style="font-size:2rem;color:var(--rose)"></i>
             <p class="mt-2 mb-0" style="color:var(--text-sec);font-size:.85rem">Clique para selecionar uma foto do PC</p>
             <p style="color:var(--text-dim);font-size:.75rem;margin:0">JPG, PNG ou WEBP</p>
           </div>
           <input type="file" id="file_input" accept="image/*" style="display:none">
 
-          <!-- Status do upload -->
           <div id="upload_status" class="mt-2" style="display:none">
             <div class="d-flex align-items-center gap-2">
               <div class="spinner-border spinner-border-sm" style="color:var(--rose)" role="status"></div>
               <span style="font-size:.82rem;color:var(--text-sec)">Enviando foto...</span>
             </div>
           </div>
-          <div id="upload_sucesso" class="mt-2" style="display:none;font-size:.82rem;color:#4ade80">
+          <div id="upload_sucesso" class="mt-2" style="display:none;font-size:.82rem;color:var(--green)">
             <i class="bi bi-check-circle me-1"></i>Foto enviada com sucesso!
           </div>
-          <div id="upload_erro" class="mt-2" style="display:none;font-size:.82rem;color:#f87171">
+          <div id="upload_erro" class="mt-2" style="display:none;font-size:.82rem;color:var(--red)">
             <i class="bi bi-x-circle me-1"></i>Erro ao enviar foto. Tente novamente.
           </div>
         </div>
@@ -124,7 +111,6 @@ document.getElementById('file_input').addEventListener('change', async function(
   const file = this.files[0];
   if (!file) return;
 
-  // Mostrar preview local imediato
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('img_preview').src = e.target.result;
@@ -132,7 +118,6 @@ document.getElementById('file_input').addEventListener('change', async function(
   };
   reader.readAsDataURL(file);
 
-  // Upload para ImgBB
   document.getElementById('upload_status').style.display = '';
   document.getElementById('upload_sucesso').style.display = 'none';
   document.getElementById('upload_erro').style.display = 'none';
@@ -166,7 +151,7 @@ document.getElementById('file_input').addEventListener('change', async function(
 
 {% if nova %}
 let checkTimer;
-['modelo','cor','tamanho'].forEach(id => {
+['modelo','tamanho'].forEach(id => {
   document.querySelector(`[name="${id}"]`).addEventListener('input', () => {
     clearTimeout(checkTimer);
     checkTimer = setTimeout(verificarDuplicata, 400);
@@ -175,14 +160,13 @@ let checkTimer;
 
 async function verificarDuplicata() {
   const modelo = document.querySelector('[name=modelo]').value;
-  const cor = document.querySelector('[name=cor]').value;
   const tamanho = document.querySelector('[name=tamanho]').value;
-  if (!modelo || !cor || !tamanho) return;
-  const res = await fetch(`/estoque/verificar-duplicata?modelo=${encodeURIComponent(modelo)}&cor=${encodeURIComponent(cor)}&tamanho=${encodeURIComponent(tamanho)}`);
+  if (!modelo || !tamanho) return;
+  const res = await fetch(`/estoque/verificar-duplicata?modelo=${encodeURIComponent(modelo)}&cor=branco&tamanho=${encodeURIComponent(tamanho)}`);
   const data = await res.json();
   const alerta = document.getElementById('alerta_duplicata');
   if (data.duplicata) {
-    alerta.textContent = `⚠️ Já existe um vestido ${data.codigo} com esse Modelo/Cor/Tamanho.`;
+    alerta.textContent = `⚠️ Já existe um vestido ${data.codigo} com esse Modelo/Tamanho.`;
     alerta.classList.remove('d-none');
   } else {
     alerta.classList.add('d-none');
