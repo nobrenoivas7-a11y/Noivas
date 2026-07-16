@@ -8,6 +8,13 @@ bp = Blueprint('pwa', __name__)
 def app_index():
     return render_template('pwa/app.html')
 
+@bp.route('/app/estoque')
+@login_required
+def app_estoque():
+    from backend.models.peca import Peca
+    pecas = Peca.query.filter_by(status='disponivel').order_by(Peca.codigo).all()
+    return render_template('pwa/app_estoque.html', pecas=pecas)
+
 @bp.route('/manifest.json')
 def manifest():
     data = {
@@ -15,7 +22,7 @@ def manifest():
         "short_name": "Nobre Elegancy",
         "start_url": "/app",
         "display": "standalone",
-        "background_color": "#FAF6F7",
+        "background_color": "#F5EEF0",
         "theme_color": "#B76E79",
         "icons": [
             {"src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
