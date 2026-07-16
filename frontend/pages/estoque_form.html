@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Novo Vestido' if nova else 'Editar Vestido' }} — Nobre Elegancy{% endblock %}
-{% block topbar_title %}<i class="bi bi-bag-heart me-2" style="color:var(--rose)"></i>{{ 'Novo Vestido' if nova else 'Editar Vestido' }}{% endblock %}
+{% block topbar_title %}{{ 'Novo Vestido' if nova else 'Editar Vestido' }}{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width:650px">
+<div class="card" style="max-width:700px">
   <div class="card-header"><h6>{{ 'Cadastrar Novo Vestido' if nova else 'Editar Vestido ' + peca.codigo }}</h6></div>
   <div class="card-body">
     <div id="alerta_duplicata" class="alert alert-warning d-none"></div>
     <form method="POST" id="formPeca">
       {% if not nova %}
-      <div class="row g-3">
+      <div class="row g-3 mb-3">
         <div class="col-md-4">
           <label class="form-label">Status</label>
           <select name="status" class="form-select">
@@ -52,16 +52,33 @@
         </div>
         <div class="col-12">
           <label class="form-label">Descrição (acessórios inclusos, tecido, detalhes)</label>
-          <textarea name="descricao" class="form-control" rows="3" placeholder="Ex: Véu incluso, renda na barra, cauda de 1m...">{{ peca.descricao if peca else '' }}</textarea>
+          <textarea name="descricao" class="form-control" rows="2" placeholder="Ex: Véu incluso, renda na barra, cauda de 1m...">{{ peca.descricao if peca else '' }}</textarea>
         </div>
+
+        <!-- FOTO -->
+        <div class="col-12">
+          <label class="form-label"><i class="bi bi-camera me-1" style="color:var(--rose)"></i>Link da Foto do Vestido</label>
+          <input type="url" name="foto_url" class="form-control" value="{{ peca.foto_url if peca else '' }}" placeholder="https://... (link do Google Fotos, Drive, etc)">
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:.3rem">
+            Tire a foto, envie para o Google Fotos ou WhatsApp Web, copie o link e cole aqui.
+          </div>
+          {% if peca and peca.foto_url %}
+          <div class="mt-2">
+            <img src="{{ peca.foto_url }}" alt="Foto do vestido" style="max-height:200px;border-radius:8px;border:1px solid var(--border)">
+          </div>
+          {% endif %}
+          <div id="preview_foto" class="mt-2"></div>
+        </div>
+
         {% if nova %}
         <div class="col-12">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="forcar_cadastro" value="1" id="forcar">
-            <label class="form-check-label text-muted" for="forcar" style="font-size:.85rem">Forçar cadastro mesmo se houver duplicata</label>
+            <label class="form-check-label" for="forcar" style="font-size:.82rem;color:var(--text-sec)">Forçar cadastro mesmo se houver duplicata</label>
           </div>
         </div>
         {% endif %}
+
         <div class="col-12 d-flex gap-2">
           <button type="submit" class="btn btn-rose px-4">{{ 'Cadastrar Vestido' if nova else 'Salvar Alterações' }}</button>
           <a href="{{ url_for('estoque.lista') }}" class="btn btn-rose-outline px-4">Cancelar</a>
@@ -92,7 +109,7 @@ async function verificarDuplicata() {
   const data = await res.json();
   const alerta = document.getElementById('alerta_duplicata');
   if (data.duplicata) {
-    alerta.textContent = `⚠️ Já existe um vestido ${data.codigo} com esse Modelo/Cor/Tamanho. Marque "Forçar cadastro" para continuar.`;
+    alerta.textContent = `⚠️ Já existe um vestido ${data.codigo} com esse Modelo/Cor/Tamanho.`;
     alerta.classList.remove('d-none');
   } else {
     alerta.classList.add('d-none');
@@ -100,4 +117,14 @@ async function verificarDuplicata() {
 }
 </script>
 {% endif %}
+<script>
+document.querySelector('[name=foto_url]').addEventListener('input', function() {
+  const preview = document.getElementById('preview_foto');
+  if (this.value) {
+    preview.innerHTML = `<img src="${this.value}" alt="Preview" style="max-height:200px;border-radius:8px;border:1px solid var(--border)" onerror="this.style.display='none'">`;
+  } else {
+    preview.innerHTML = '';
+  }
+});
+</script>
 {% endblock %}
