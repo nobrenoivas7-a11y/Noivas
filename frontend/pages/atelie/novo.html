@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Novo Pedido — Ateliê{% endblock %}
+{% block topbar_title %}Novo Pedido de Confecção{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-header"><h6><i class="bi bi-scissors me-2" style="color:var(--rose)"></i>Novo Pedido</h6></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+
+        <!-- CLIENTE -->
+        <div class="col-12">
+          <label class="form-label">Cliente (Noiva) *</label>
+          <input type="hidden" name="cliente_id" id="cliente_id">
+          <div class="position-relative">
+            <input type="text" name="nome_cliente" id="nome_cliente" class="form-control" placeholder="Digite para buscar cliente ou escrever nome..." required autocomplete="off">
+            <div id="autocomplete_list" class="list-group position-absolute w-100" style="z-index:999;top:100%;display:none;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Telefone / WhatsApp</label>
+          <input type="text" name="telefone" id="telefone" class="form-control" placeholder="(85) 99999-9999">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Costureira Responsável</label>
+          <input type="text" name="costureira" class="form-control" placeholder="Nome da costureira">
+        </div>
+
+        <!-- VESTIDO -->
+        <div class="col-12"><hr style="border-color:var(--border)"><label class="form-label fw-bold" style="color:var(--rose-dark)">Dados do Vestido</label></div>
+        <div class="col-md-8">
+          <label class="form-label">Modelo / Estilo</label>
+          <input type="text" name="modelo" class="form-control" placeholder="Ex: Sereia com cauda, Princesa volumosa...">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descrição detalhada</label>
+          <textarea name="descricao" class="form-control" rows="3" placeholder="Detalhes do vestido: tecido, bordado, decote, manga, cauda..."></textarea>
+        </div>
+
+        <!-- DATAS -->
+        <div class="col-12"><hr style="border-color:var(--border)"><label class="form-label fw-bold" style="color:var(--rose-dark)">Datas</label></div>
+        <div class="col-md-6">
+          <label class="form-label">Data da Prova</label>
+          <input type="date" name="data_prova" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Data de Entrega</label>
+          <input type="date" name="data_entrega" class="form-control">
+        </div>
+
+        <!-- OBS -->
+        <div class="col-12">
+          <label class="form-label">Observações gerais</label>
+          <textarea name="observacoes" class="form-control" rows="2" placeholder="Informações adicionais, pedidos especiais..."></textarea>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-rose px-4">Criar Pedido</button>
+          <a href="{{ url_for('atelie.index') }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let acTimer;
+document.getElementById('nome_cliente').addEventListener('input', function() {
+  clearTimeout(acTimer);
+  document.getElementById('cliente_id').value = '';
+  acTimer = setTimeout(() => buscarClientes(this.value), 250);
+});
+
+async function buscarClientes(q) {
+  const lista = document.getElementById('autocomplete_list');
+  if (q.length < 2) { lista.style.display = 'none'; return; }
+  const res = await fetch(`/clientes/buscar?q=${encodeURIComponent(q)}`);
+  const clientes = await res.json();
+  if (!clientes.length) { lista.style.display = 'none'; return; }
+  lista.innerHTML = clientes.map(c =>
+    `<a href="#" class="list-group-item list-group-item-action py-2" style="background:#fff;border-color:var(--border);color:var(--text)" data-id="${c.id}" data-nome="${c.nome}" data-tel="${c.telefone}">
+      <strong>${c.nome}</strong> <span style="font-size:.78rem;color:var(--text-dim)">${c.telefone}</span>
+    </a>`).join('');
+  lista.style.display = '';
+  lista.querySelectorAll('a').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('cliente_id').value = a.dataset.id;
+    document.getElementById('nome_cliente').value = a.dataset.nome;
+    document.getElementById('telefone').value = a.dataset.tel;
+    lista.style.display = 'none';
+  }));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#nome_cliente')) document.getElementById('autocomplete_list').style.display = 'none';
+});
+</script>
+{% endblock %}
