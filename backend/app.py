@@ -42,6 +42,7 @@ def create_app():
     from backend.routers.dashboard import bp as dashboard_bp
     from backend.routers.consultas import bp as consultas_bp
     from backend.routers.pwa import bp as pwa_bp
+    from backend.routers.agendamento import bp as agendamento_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(contratos_bp)
@@ -52,6 +53,7 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(consultas_bp)
     app.register_blueprint(pwa_bp)
+    app.register_blueprint(agendamento_bp)
 
     with app.app_context():
         db.create_all()
