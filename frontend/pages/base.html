@@ -11,22 +11,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --rose:       #C9848E;
-      --rose-dark:  #A0535E;
-      --rose-light: #E8B4BA;
-      --rose-glow:  rgba(201,132,142,0.12);
-      --gold:       #B8860B;
-      --bg:         #2D1A1F;
-      --bg2:        #3D2228;
-      --card:       #4A2A30;
-      --card2:      #572F36;
-      --border:     #7A4450;
-      --border2:    rgba(201,132,142,0.35);
-      --text:       #F5E6E8;
-      --text-sec:   #D4A8B0;
-      --text-dim:   #A87880;
-      --green:      #4ade80;
-      --red:        #f87171;
+      --rose:       #B76E79;
+      --rose-dark:  #8B3A47;
+      --rose-light: #D4919A;
+      --rose-glow:  rgba(183,110,121,0.10);
+      --gold:       #9A7B3C;
+      --bg:         #F5EEF0;
+      --bg2:        #FFFFFF;
+      --card:       #FFFFFF;
+      --card2:      #FDF6F7;
+      --border:     #E8C5C9;
+      --border2:    rgba(183,110,121,0.25);
+      --text:       #2D1A1F;
+      --text-sec:   #7A4A55;
+      --text-dim:   #B08090;
+      --green:      #2d7a4f;
+      --red:        #c0392b;
       --sidebar-w:  220px;
     }
     * { box-sizing: border-box; }
@@ -47,21 +47,22 @@
     .sidebar-brand {
       padding: 1.25rem 1rem 1rem;
       border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, #B76E79, #8B3A47);
     }
     .brand-name {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.15rem; font-weight: 700;
-      color: var(--rose-light); line-height: 1.1;
+      color: #fff; line-height: 1.1;
       letter-spacing: 0.03em;
     }
-    .brand-name span { color: var(--rose); }
+    .brand-name span { color: #F5E6E8; }
     .brand-sub {
-      font-size: 0.65rem; color: var(--text-dim);
+      font-size: 0.65rem; color: rgba(255,255,255,0.7);
       text-transform: uppercase; letter-spacing: 0.1em;
       margin-top: 0.2rem;
     }
     .brand-line {
-      height: 2px; background: linear-gradient(90deg, var(--rose), transparent);
+      height: 2px; background: linear-gradient(90deg, rgba(255,255,255,0.5), transparent);
       margin-top: 0.6rem; border-radius: 1px;
     }
     .sidebar-nav { padding: 0.5rem 0; flex: 1; }
@@ -80,14 +81,14 @@
     }
     .sidebar-link:hover {
       background: var(--rose-glow);
-      color: var(--rose-light);
-      border-left-color: var(--rose-dark);
+      color: var(--rose-dark);
+      border-left-color: var(--rose);
     }
     .sidebar-link.active {
       background: var(--rose-glow);
-      color: var(--rose-light);
+      color: var(--rose-dark);
       border-left-color: var(--rose);
-      font-weight: 500;
+      font-weight: 600;
     }
     .sidebar-link i { font-size: 0.95rem; width: 18px; }
     .sidebar-footer {
@@ -101,6 +102,7 @@
       padding: 0.75rem 1.5rem;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 4px rgba(183,110,121,0.08);
     }
     .topbar-title {
       font-family: 'Cormorant Garamond', serif;
@@ -116,14 +118,16 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(183,110,121,0.06);
     }
     .card-header {
-      background: transparent;
+      background: #FDF6F7;
       border-bottom: 1px solid var(--border);
       padding: 0.75rem 1.1rem;
+      border-radius: 10px 10px 0 0;
     }
     .card-header h6, .card-header h5 {
-      color: var(--rose-light);
+      color: var(--rose-dark);
       font-size: 0.78rem;
       font-weight: 600;
       text-transform: uppercase;
@@ -137,12 +141,13 @@
       padding: 1.1rem 1.25rem;
       position: relative;
       overflow: hidden;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 4px rgba(183,110,121,0.06);
     }
-    .stat-card:hover { border-color: var(--rose-dark); }
+    .stat-card:hover { border-color: var(--rose); box-shadow: 0 2px 8px rgba(183,110,121,0.12); }
     .stat-card::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: var(--accent-color, var(--rose));
     }
     .stat-label {
@@ -152,7 +157,7 @@
     }
     .stat-value {
       font-size: 1.8rem; font-weight: 700;
-      line-height: 1; color: var(--accent-color, var(--rose-light));
+      line-height: 1; color: var(--accent-color, var(--rose-dark));
       font-family: 'Cormorant Garamond', serif;
     }
     .stat-sub {
@@ -169,7 +174,7 @@
       color: var(--text-dim);
       border-color: var(--border);
       padding: 0.6rem 0.75rem;
-      background: var(--card2);
+      background: #FDF6F7;
     }
     .table td {
       border-color: var(--border);
@@ -178,47 +183,47 @@
       font-size: 0.82rem;
     }
     .table-hover tbody tr:hover { background: var(--rose-glow); }
-    .badge-ativo    { background: rgba(74,222,128,.15); color: #4ade80; border: 1px solid rgba(74,222,128,.3); }
-    .badge-atrasado { background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
-    .badge-devolvido{ background: rgba(96,165,250,.15); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
-    .badge-cancelado{ background: rgba(156,163,175,.1); color: #9ca3af; border: 1px solid rgba(156,163,175,.2); }
+    .badge-ativo    { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .badge-atrasado { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .badge-devolvido{ background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .badge-cancelado{ background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
     .btn-rose {
       background: var(--rose); color: #fff; border: none;
       font-size: 0.82rem; font-weight: 500;
     }
     .btn-rose:hover { background: var(--rose-dark); color: #fff; }
     .btn-rose-outline {
-      border: 1px solid var(--rose-dark); color: var(--rose-light);
+      border: 1px solid var(--rose); color: var(--rose-dark);
       background: transparent; font-size: 0.82rem;
     }
-    .btn-rose-outline:hover { background: var(--rose-glow); color: var(--rose-light); border-color: var(--rose); }
+    .btn-rose-outline:hover { background: var(--rose-glow); color: var(--rose-dark); border-color: var(--rose-dark); }
     .form-control, .form-select {
-      background: var(--card2); border: 1px solid var(--border);
+      background: #fff; border: 1px solid var(--border);
       color: var(--text); font-size: 0.82rem;
     }
     .form-control:focus, .form-select:focus {
-      background: var(--card2); color: var(--text);
-      border-color: var(--rose-dark);
-      box-shadow: 0 0 0 0.15rem var(--rose-glow);
+      background: #fff; color: var(--text);
+      border-color: var(--rose);
+      box-shadow: 0 0 0 0.15rem rgba(183,110,121,0.15);
     }
     .form-control::placeholder { color: var(--text-dim); }
     .form-label { font-size: 0.75rem; color: var(--text-sec); font-weight: 500; }
-    .form-select option { background: var(--card2); color: var(--text); }
-    .alert-success { background: rgba(74,222,128,.1); border-color: rgba(74,222,128,.3); color: #4ade80; }
-    .alert-danger  { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); color: #f87171; }
-    .alert-warning { background: rgba(251,191,36,.1);  border-color: rgba(251,191,36,.3);  color: #fbbf24; }
-    a { color: var(--rose-light); }
+    .form-select option { background: #fff; color: var(--text); }
+    .alert-success { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+    .alert-danger  { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .alert-warning { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+    a { color: var(--rose-dark); }
     a:hover { color: var(--rose); }
     hr { border-color: var(--border); }
-    .text-muted { color: var(--text-sec) !important; }
-    .text-rose { color: var(--rose-light); }
+    .text-muted { color: var(--text-dim) !important; }
+    .text-rose { color: var(--rose); }
     .text-gold { color: var(--gold); }
     .contract-id {
-      color: var(--rose); font-weight: 700;
+      color: var(--rose-dark); font-weight: 700;
       text-decoration: none; font-family: 'Cormorant Garamond', serif;
       font-size: 1rem;
     }
-    .contract-id:hover { color: var(--rose-light); }
+    .contract-id:hover { color: var(--rose); }
     @media (max-width: 768px) {
       .sidebar { display: none; }
       .main-content { margin-left: 0; }
@@ -299,7 +304,7 @@
         {% for cat, msg in messages %}
           <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert" style="font-size:.82rem">
             {{ msg }}
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
         {% endfor %}
       {% endwith %}
