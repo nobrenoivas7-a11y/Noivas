@@ -13,6 +13,7 @@ class Peca(db.Model):
     descricao = db.Column(db.Text)
     preco_aluguel = db.Column(db.Float, default=0.0)
     status = db.Column(db.String(20), default='disponivel')
+    foto_url = db.Column(db.String(500), nullable=True)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
 
     itens = db.relationship('ContratoItem', backref='peca', lazy=True)
