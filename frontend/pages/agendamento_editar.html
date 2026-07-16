@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Editar Agendamento — Nobre Elegancy{% endblock %}
+{% block topbar_title %}Editar Agendamento{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header"><h6>Editar Agendamento — {{ ag.nome }}</h6></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nome da Noiva *</label>
+          <input type="text" name="nome" class="form-control" value="{{ ag.nome }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Telefone / WhatsApp</label>
+          <input type="text" name="telefone" class="form-control" value="{{ ag.telefone or '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-select">
+            <option value="agendado" {% if ag.status=='agendado' %}selected{% endif %}>Agendado</option>
+            <option value="atendido" {% if ag.status=='atendido' %}selected{% endif %}>Atendido</option>
+            <option value="fechou" {% if ag.status=='fechou' %}selected{% endif %}>Fechou Contrato</option>
+            <option value="cancelado" {% if ag.status=='cancelado' %}selected{% endif %}>Cancelado</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Data da Visita *</label>
+          <input type="date" name="data_visita" class="form-control" value="{{ ag.data_visita.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Dia do Evento</label>
+          <input type="date" name="data_evento" class="form-control" value="{{ ag.data_evento.strftime('%Y-%m-%d') if ag.data_evento else '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Observações</label>
+          <textarea name="observacoes" class="form-control" rows="4" placeholder="Estilo preferido, orçamento, acompanhantes, notas do atendimento...">{{ ag.observacoes or '' }}</textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-rose px-4">Salvar Alterações</button>
+          <a href="{{ url_for('agendamento.index') }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
