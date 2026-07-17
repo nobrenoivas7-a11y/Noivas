@@ -94,7 +94,7 @@
         <div class="p-3" style="background:var(--card2);border-bottom:1px solid var(--border)">
           <form method="POST" action="{{ url_for('atelie.add_material', id=pedido.id) }}">
             <div class="row g-2">
-              <div class="col-md-4"><input type="text" name="nome" class="form-control form-control-sm" placeholder="Material *" required></div>
+              <div class="col-md-5"><input type="text" name="nome" class="form-control form-control-sm" placeholder="Material *" required></div>
               <div class="col-md-2"><input type="text" name="quantidade" class="form-control form-control-sm" placeholder="Qtd"></div>
               <div class="col-md-2">
                 <select name="unidade" class="form-select form-select-sm">
@@ -103,17 +103,16 @@
                   <option value="kg">kg</option>
                 </select>
               </div>
-              <div class="col-md-2"><input type="text" name="cor" class="form-control form-control-sm" placeholder="Cor"></div>
-              <div class="col-md-2">
+              <div class="col-md-3"><input type="text" name="cor" class="form-control form-control-sm" placeholder="Cor"></div>
+              <div class="col-md-6">
                 <select name="status" class="form-select form-select-sm">
                   <option value="pendente">Pendente</option>
                   <option value="em_compra">Em Compra</option>
                   <option value="no_atelie">No Ateliê</option>
                 </select>
               </div>
-              <div class="col-md-6"><input type="text" name="fornecedor" class="form-control form-control-sm" placeholder="Fornecedor"></div>
-              <div class="col-md-6 d-flex gap-2">
-                <button class="btn btn-rose btn-sm flex-fill">Adicionar Material</button>
+              <div class="col-md-6">
+                <button class="btn btn-rose btn-sm w-100">Adicionar Material</button>
               </div>
             </div>
           </form>
@@ -122,18 +121,17 @@
       <div class="card-body p-0">
         {% if pedido.materiais %}
         <table class="table mb-0">
-          <thead><tr><th>Material</th><th>Qtd</th><th>Cor</th><th>Fornecedor</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Material</th><th>Qtd</th><th>Cor</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {% for m in pedido.materiais %}
             <tr>
               <td class="fw-bold">{{ m.nome }}</td>
               <td style="color:var(--text-sec)">{{ m.quantidade or '—' }} {{ m.unidade if m.quantidade else '' }}</td>
               <td style="color:var(--text-sec)">{{ m.cor or '—' }}</td>
-              <td style="color:var(--text-sec)">{{ m.fornecedor or '—' }}</td>
               <td>
                 <form method="POST" action="{{ url_for('atelie.material_status', id=m.id) }}">
                   <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto">
-                    <option value="pendente" {% if m.status=='pendente' %}selected{% endif %} style="background:#fef3c7;color:#92400e">Pendente</option>
+                    <option value="pendente" {% if m.status=='pendente' %}selected{% endif %}>Pendente</option>
                     <option value="em_compra" {% if m.status=='em_compra' %}selected{% endif %}>Em Compra</option>
                     <option value="no_atelie" {% if m.status=='no_atelie' %}selected{% endif %}>No Ateliê</option>
                     <option value="usado" {% if m.status=='usado' %}selected{% endif %}>Usado</option>
@@ -159,7 +157,6 @@
     <div class="card">
       <div class="card-header"><h6><i class="bi bi-clock-history me-2"></i>Histórico de Atualizações</h6></div>
       <div class="card-body">
-        <!-- Form nova atualização -->
         <form method="POST" action="{{ url_for('atelie.add_historico', id=pedido.id) }}" class="mb-4">
           <div class="mb-2">
             <input type="text" name="autor" class="form-control form-control-sm" placeholder="Seu nome" value="{{ current_user.nome }}">
@@ -170,7 +167,6 @@
           <button class="btn btn-rose btn-sm"><i class="bi bi-send me-1"></i>Registrar Atualização</button>
         </form>
 
-        <!-- Feed de histórico -->
         {% if pedido.historico %}
         <div style="border-left:2px solid var(--border);padding-left:1rem">
           {% for h in pedido.historico|reverse %}
