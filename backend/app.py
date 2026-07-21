@@ -1,81 +1,328 @@
-import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Nobre Elegancy Noivas{% endblock %}</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rose:       #B76E79;
+      --rose-dark:  #8B3A47;
+      --rose-light: #D4919A;
+      --rose-glow:  rgba(183,110,121,0.10);
+      --gold:       #9A7B3C;
+      --bg:         #F5EEF0;
+      --bg2:        #FFFFFF;
+      --card:       #FFFFFF;
+      --card2:      #FDF6F7;
+      --border:     #E8C5C9;
+      --border2:    rgba(183,110,121,0.25);
+      --text:       #2D1A1F;
+      --text-sec:   #7A4A55;
+      --text-dim:   #B08090;
+      --green:      #2d7a4f;
+      --red:        #c0392b;
+      --sidebar-w:  220px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 14px;
+    }
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-w); height: 100vh;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      z-index: 100; overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 1.25rem 1rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, #B76E79, #8B3A47);
+    }
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: #fff; line-height: 1.1;
+      letter-spacing: 0.03em;
+    }
+    .brand-name span { color: #F5E6E8; }
+    .brand-sub {
+      font-size: 0.65rem; color: rgba(255,255,255,0.7);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-top: 0.2rem;
+    }
+    .brand-line {
+      height: 2px; background: linear-gradient(90deg, rgba(255,255,255,0.5), transparent);
+      margin-top: 0.6rem; border-radius: 1px;
+    }
+    .sidebar-nav { padding: 0.5rem 0; flex: 1; }
+    .nav-section {
+      padding: 0.75rem 1rem 0.2rem;
+      font-size: 0.6rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--text-dim);
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.5rem 1rem; color: var(--text-sec);
+      text-decoration: none; font-size: 0.82rem;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar-link:hover {
+      background: var(--rose-glow);
+      color: var(--rose-dark);
+      border-left-color: var(--rose);
+    }
+    .sidebar-link.active {
+      background: var(--rose-glow);
+      color: var(--rose-dark);
+      border-left-color: var(--rose);
+      font-weight: 600;
+    }
+    .sidebar-link i { font-size: 0.95rem; width: 18px; }
+    .sidebar-footer {
+      padding: 0.75rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .main-content { margin-left: var(--sidebar-w); min-height: 100vh; }
+    .topbar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 4px rgba(183,110,121,0.08);
+    }
+    .topbar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 600;
+      color: var(--text);
+    }
+    .topbar-user {
+      font-size: 0.78rem; color: var(--text-sec);
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .page-content { padding: 1.5rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(183,110,121,0.06);
+    }
+    .card-header {
+      background: #FDF6F7;
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.1rem;
+      border-radius: 10px 10px 0 0;
+    }
+    .card-header h6, .card-header h5 {
+      color: var(--rose-dark);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 4px rgba(183,110,121,0.06);
+    }
+    .stat-card:hover { border-color: var(--rose); box-shadow: 0 2px 8px rgba(183,110,121,0.12); }
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--accent-color, var(--rose));
+    }
+    .stat-label {
+      font-size: 0.65rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-dim); margin-bottom: 0.4rem;
+    }
+    .stat-value {
+      font-size: 1.8rem; font-weight: 700;
+      line-height: 1; color: var(--accent-color, var(--rose-dark));
+      font-family: 'Cormorant Garamond', serif;
+    }
+    .stat-sub {
+      font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;
+    }
+    .table {
+      color: var(--text);
+      --bs-table-bg: transparent;
+      --bs-table-hover-bg: var(--rose-glow);
+    }
+    .table th {
+      font-size: 0.65rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim);
+      border-color: var(--border);
+      padding: 0.6rem 0.75rem;
+      background: #FDF6F7;
+    }
+    .table td {
+      border-color: var(--border);
+      padding: 0.6rem 0.75rem;
+      vertical-align: middle;
+      font-size: 0.82rem;
+    }
+    .table-hover tbody tr:hover { background: var(--rose-glow); }
+    .badge-ativo    { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .badge-atrasado { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .badge-devolvido{ background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .badge-cancelado{ background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
+    .btn-rose {
+      background: var(--rose); color: #fff; border: none;
+      font-size: 0.82rem; font-weight: 500;
+    }
+    .btn-rose:hover { background: var(--rose-dark); color: #fff; }
+    .btn-rose-outline {
+      border: 1px solid var(--rose); color: var(--rose-dark);
+      background: transparent; font-size: 0.82rem;
+    }
+    .btn-rose-outline:hover { background: var(--rose-glow); color: var(--rose-dark); border-color: var(--rose-dark); }
+    .form-control, .form-select {
+      background: #fff; border: 1px solid var(--border);
+      color: var(--text); font-size: 0.82rem;
+    }
+    .form-control:focus, .form-select:focus {
+      background: #fff; color: var(--text);
+      border-color: var(--rose);
+      box-shadow: 0 0 0 0.15rem rgba(183,110,121,0.15);
+    }
+    .form-control::placeholder { color: var(--text-dim); }
+    .form-label { font-size: 0.75rem; color: var(--text-sec); font-weight: 500; }
+    .form-select option { background: #fff; color: var(--text); }
+    .alert-success { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+    .alert-danger  { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+    .alert-warning { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+    a { color: var(--rose-dark); }
+    a:hover { color: var(--rose); }
+    hr { border-color: var(--border); }
+    .text-muted { color: var(--text-dim) !important; }
+    .text-rose { color: var(--rose); }
+    .text-gold { color: var(--gold); }
+    .contract-id {
+      color: var(--rose-dark); font-weight: 700;
+      text-decoration: none; font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+    }
+    .contract-id:hover { color: var(--rose); }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">✦ NOBRE <span>ELEGANCY</span></div>
+      <div class="brand-sub">Vestidos de Noiva</div>
+      <div class="brand-line"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a href="{{ url_for('dashboard.index') }}" class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <i class="bi bi-grid-1x2"></i> Dashboard
+      </a>
+      <div class="nav-section">Contratos</div>
+      <a href="{{ url_for('contratos.novo') }}" class="sidebar-link {% if request.endpoint == 'contratos.novo' %}active{% endif %}">
+        <i class="bi bi-plus-circle"></i> Novo Contrato
+      </a>
+      <a href="{{ url_for('contratos.lista') }}" class="sidebar-link {% if request.endpoint == 'contratos.lista' %}active{% endif %}">
+        <i class="bi bi-file-earmark-text"></i> Contratos
+      </a>
+      <div class="nav-section">Agenda</div>
+      <a href="{{ url_for('agenda.index') }}" class="sidebar-link {% if request.endpoint == 'agenda.index' %}active{% endif %}">
+        <i class="bi bi-calendar3"></i> Agenda de Saídas
+      </a>
+      <a href="{{ url_for('agenda.provas') }}" class="sidebar-link {% if request.endpoint == 'agenda.provas' %}active{% endif %}">
+        <i class="bi bi-scissors"></i> Agenda de Provas
+      </a>
+      <a href="{{ url_for('agendamento.index') }}" class="sidebar-link {% if request.endpoint == 'agendamento.index' %}active{% endif %}">
+        <i class="bi bi-calendar-plus"></i> Agendamentos
+      </a>
+      <div class="nav-section">Financeiro</div>
+      <a href="{{ url_for('contabilidade.index') }}" class="sidebar-link {% if request.endpoint == 'contabilidade.index' %}active{% endif %}">
+        <i class="bi bi-graph-up"></i> Contabilidade
+      </a>
+      <a href="{{ url_for('contabilidade.despesas') }}" class="sidebar-link {% if request.endpoint == 'contabilidade.despesas' %}active{% endif %}">
+        <i class="bi bi-wallet2"></i> Despesas e Metas
+      </a>
+      <a href="{{ url_for('contabilidade.relatorio_pdf') }}" class="sidebar-link">
+        <i class="bi bi-file-pdf"></i> Relatório PDF
+      </a>
+      <a href="{{ url_for('estoque.mais_alugados') }}" class="sidebar-link {% if request.endpoint == 'estoque.mais_alugados' %}active{% endif %}">
+        <i class="bi bi-trophy"></i> Vestidos Mais Alugados
+      </a>
+      <div class="nav-section">Cadastros</div>
+      <a href="{{ url_for('estoque.lista') }}" class="sidebar-link {% if request.endpoint in ['estoque.lista','estoque.nova','estoque.editar'] %}active{% endif %}">
+        <i class="bi bi-bag-heart"></i> Estoque
+      </a>
+      <a href="{{ url_for('clientes.lista') }}" class="sidebar-link {% if 'clientes' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-people"></i> Clientes
+      </a>
+      <a href="{{ url_for('consultas.index') }}" class="sidebar-link {% if request.endpoint == 'consultas.index' %}active{% endif %}">
+        <i class="bi bi-search"></i> Consultas
+      </a>
+      <div class="nav-section">Ateliê</div>
+      <a href="{{ url_for('atelie.index') }}" class="sidebar-link {% if 'atelie' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-scissors"></i> Ateliê de Confecção
+      </a>
+      <div class="nav-section">Sistema</div>
+      {% if current_user.nivel == 'admin' %}
+      <a href="{{ url_for('usuarios.lista') }}" class="sidebar-link {% if 'usuarios' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-person-gear"></i> Usuários
+      </a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color:var(--red)">
+        <i class="bi bi-box-arrow-left"></i> Sair
+      </a>
+    </div>
+  </div>
 
-db = SQLAlchemy()
-login_manager = LoginManager()
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">{% block topbar_title %}{% endblock %}</span>
+      <span class="topbar-user">
+        <i class="bi bi-person-circle" style="color:var(--rose)"></i>
+        {{ current_user.nome }}
+      </span>
+    </div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show mb-3" role="alert" style="font-size:.82rem">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
 
-def create_app():
-    app = Flask(__name__,
-                template_folder='../frontend/pages',
-                static_folder='../frontend/assets')
-
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'nobre_elegancy_dev_2025')
-
-    database_url = os.environ.get('DATABASE_URL', 'sqlite:///noivas.db')
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql+pg8000://', 1)
-    elif database_url.startswith('postgresql://') and 'pg8000' not in database_url:
-        database_url = database_url.replace('postgresql://', 'postgresql+pg8000://', 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    db.init_app(app)
-    login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Faça login para continuar.'
-
-    from backend.models.usuario import Usuario
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return db.session.get(Usuario, int(user_id))
-
-    from backend.routers.auth import bp as auth_bp
-    from backend.routers.contratos import bp as contratos_bp
-    from backend.routers.estoque import bp as estoque_bp
-    from backend.routers.clientes import bp as clientes_bp
-    from backend.routers.agenda import bp as agenda_bp
-    from backend.routers.contabilidade import bp as contabilidade_bp
-    from backend.routers.dashboard import bp as dashboard_bp
-    from backend.routers.consultas import bp as consultas_bp
-    from backend.routers.pwa import bp as pwa_bp
-    from backend.routers.agendamento import bp as agendamento_bp
-    from backend.routers.atelie import bp as atelie_bp
-    from backend.routers.usuarios import bp as usuarios_bp
-
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(contratos_bp)
-    app.register_blueprint(estoque_bp)
-    app.register_blueprint(clientes_bp)
-    app.register_blueprint(agenda_bp)
-    app.register_blueprint(contabilidade_bp)
-    app.register_blueprint(dashboard_bp)
-    app.register_blueprint(consultas_bp)
-    app.register_blueprint(pwa_bp)
-    app.register_blueprint(agendamento_bp)
-    app.register_blueprint(atelie_bp)
-    app.register_blueprint(usuarios_bp)
-
-    with app.app_context():
-        db.create_all()
-        _init_admin()
-
-    return app
-
-
-def _init_admin():
-    from backend.models.usuario import Usuario
-    from werkzeug.security import generate_password_hash
-    admin = Usuario.query.filter_by(email='Isaac').first()
-    if not admin:
-        admin = Usuario(
-            nome='Isaac',
-            email='Isaac',
-            senha_hash=generate_password_hash('753951'),
-            nivel='admin',
-            ativo=True
-        )
-        db.session.add(admin)
-        db.session.commit()
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
