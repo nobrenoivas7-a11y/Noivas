@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Usuários{% endblock %}
+{% block topbar_title %}Gerenciar Usuários{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <p class="mb-0" style="color:var(--text-sec);font-size:.82rem">Gerencie os acessos ao sistema.</p>
+  <a href="{{ url_for('usuarios.novo') }}" class="btn btn-rose btn-sm"><i class="bi bi-person-plus me-1"></i>Novo Usuário</a>
+</div>
+
+<div class="card">
+  <div class="card-header"><h6><i class="bi bi-people me-2"></i>Usuários Cadastrados</h6></div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Login</th>
+          <th>Nível</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td class="fw-bold">{{ u.nome }}</td>
+          <td style="color:var(--text-sec)">{{ u.email }}</td>
+          <td>
+            {% if u.nivel == 'admin' %}
+            <span class="badge" style="background:var(--rose-glow);color:var(--rose-dark);border:1px solid var(--border)">Admin</span>
+            {% else %}
+            <span class="badge" style="background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db">Funcionária</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.ativo %}
+            <span class="badge badge-ativo">Ativo</span>
+            {% else %}
+            <span class="badge badge-cancelado">Inativo</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('usuarios.editar', id=u.id) }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-pencil"></i></a>
+              {% if u.id != current_user.id %}
+              <form method="POST" action="{{ url_for('usuarios.ativar', id=u.id) }}">
+                <button class="btn btn-sm {% if u.ativo %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                  <i class="bi bi-{% if u.ativo %}pause{% else %}play{% endif %}"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
