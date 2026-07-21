@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{% if novo %}Novo Usuário{% else %}Editar Usuário{% endif %}{% endblock %}
+{% block topbar_title %}{% if novo %}Novo Usuário{% else %}Editar — {{ usuario.nome }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:500px">
+  <div class="card-header"><h6><i class="bi bi-person me-2"></i>{% if novo %}Criar Novo Usuário{% else %}Editar Usuário{% endif %}</h6></div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nome *</label>
+          <input type="text" name="nome" class="form-control" value="{{ usuario.nome if not novo else '' }}" required placeholder="Nome completo">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Login (usuário) *</label>
+          <input type="text" name="email" class="form-control" value="{{ usuario.email if not novo else '' }}" required placeholder="Ex: maria ou maria@email.com">
+        </div>
+        <div class="col-12">
+          <label class="form-label">{% if novo %}Senha *{% else %}Nova Senha <span style="color:var(--text-dim)">(deixe em branco para manter a atual)</span>{% endif %}</label>
+          <input type="password" name="senha" class="form-control" {% if novo %}required{% endif %} placeholder="{% if novo %}Digite a senha{% else %}Nova senha (opcional){% endif %}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Nível de Acesso</label>
+          <select name="nivel" class="form-select">
+            <option value="funcionaria" {% if not novo and usuario.nivel == 'funcionaria' %}selected{% endif %}>Funcionária</option>
+            <option value="admin" {% if not novo and usuario.nivel == 'admin' %}selected{% endif %}>Administrador</option>
+          </select>
+          <div class="form-text" style="color:var(--text-dim);font-size:.72rem">Admin pode criar e excluir usuários. Funcionária apenas usa o sistema.</div>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-rose px-4">{% if novo %}Criar Usuário{% else %}Salvar{% endif %}</button>
+          <a href="{{ url_for('usuarios.lista') }}" class="btn btn-rose-outline px-4">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
