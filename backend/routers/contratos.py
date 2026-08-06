@@ -104,7 +104,19 @@ def novo():
 
             msg_inicial = 'Contrato criado.'
             if primeiro_aluguel:
-                msg_inicial += ' Primeiro aluguel — croqui cadastrado.'
+                msg_inicial += ' Primeiro aluguel — enviado para o Ateliê.'
+                db.session.execute(text("""
+                    INSERT INTO atelie_pedidos (cliente_id, nome_cliente, telefone, data_entrega, data_prova, status, observacoes)
+                    VALUES (:cliente_id, :nome_cliente, :telefone, :data_entrega, :data_prova, 'aguardando_croqui', :obs)
+                """), {
+                    'cliente_id': cliente.id,
+                    'nome_cliente': cliente.nome,
+                    'telefone': cliente.telefone,
+                    'data_entrega': data_devolucao,
+                    'data_prova': data_prova,
+                    'obs': f'Gerado automaticamente do Contrato #{contrato.id:04d}.'
+                })
+
             db.session.execute(text("""
                 INSERT INTO contrato_historico (contrato_id, autor, mensagem)
                 VALUES (:cid, :autor, :msg)
