@@ -3,7 +3,6 @@ from backend.app import db
 
 class Contrato(db.Model):
     __tablename__ = 'contratos'
-
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
@@ -16,8 +15,9 @@ class Contrato(db.Model):
     valor_pago = db.Column(db.Float, default=0.0)
     status = db.Column(db.String(20), default='ativo')
     observacoes = db.Column(db.Text)
+    primeiro_aluguel = db.Column(db.Boolean, default=False)
+    foto_croqui = db.Column(db.String(500))
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
-
     itens = db.relationship('ContratoItem', backref='contrato', lazy=True, cascade='all, delete-orphan')
     pagamentos = db.relationship('Pagamento', backref='contrato', lazy=True, cascade='all, delete-orphan')
     usuario = db.relationship('Usuario', backref='contratos', lazy=True)
@@ -36,7 +36,6 @@ class Contrato(db.Model):
 
 class ContratoItem(db.Model):
     __tablename__ = 'contrato_itens'
-
     id = db.Column(db.Integer, primary_key=True)
     contrato_id = db.Column(db.Integer, db.ForeignKey('contratos.id'), nullable=False)
     peca_id = db.Column(db.Integer, db.ForeignKey('pecas.id'), nullable=False)
@@ -45,7 +44,6 @@ class ContratoItem(db.Model):
 
 class Pagamento(db.Model):
     __tablename__ = 'pagamentos'
-
     id = db.Column(db.Integer, primary_key=True)
     contrato_id = db.Column(db.Integer, db.ForeignKey('contratos.id'), nullable=False)
     valor = db.Column(db.Float, nullable=False)
@@ -57,7 +55,6 @@ class Pagamento(db.Model):
 
 class Despesa(db.Model):
     __tablename__ = 'despesas'
-
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(200), nullable=False)
     valor = db.Column(db.Float, nullable=False)
