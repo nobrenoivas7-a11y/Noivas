@@ -4,139 +4,194 @@
 
 {% block content %}
 <div class="d-flex gap-2 mb-3 flex-wrap">
-  <a href="{{ url_for('contratos.pdf', id=contrato.id) }}" target="_blank" class="btn btn-rose btn-sm"><i class="bi bi-file-pdf me-1"></i>PDF</a>
-  {% if current_user.is_admin %}
-  <a href="{{ url_for('contratos.editar', id=contrato.id) }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>
-  <form method="POST" action="{{ url_for('contratos.excluir', id=contrato.id) }}" onsubmit="return confirm('Excluir este contrato?')">
-    <button class="btn btn-sm btn-outline-danger">Excluir</button>
-  </form>
-  {% endif %}
+  <a href="{{ url_for('contratos.editar', id=contrato.id) }}" class="btn btn-rose btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>
   {% if contrato.cliente.telefone %}
-  <a href="https://wa.me/55{{ contrato.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ contrato.cliente.nome|urlencode }}!+Contrato+%23{{ '%04d'|format(contrato.id) }}:+Vestido:+{% for i in contrato.itens %}{{ i.peca.codigo }}{% if not loop.last %}%2C+{% endif %}{% endfor %}+|+Retirada:+{{ contrato.data_retirada.strftime('%d/%m/%Y') }}+|+Devolução:+{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}+|+Total:+R$+{{ '%.2f'|format(contrato.valor_total)|replace('.',',') }}+|+Saldo:+R$+{{ '%.2f'|format(contrato.saldo_restante)|replace('.',',') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
+  <a href="https://wa.me/55{{ contrato.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}"
+     target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff">
+    <i class="bi bi-whatsapp me-1"></i>WhatsApp
+  </a>
   {% endif %}
+  <a href="{{ url_for('contratos.pdf', id=contrato.id) }}" target="_blank" class="btn btn-sm" style="background:#3b82f6;color:#fff">
+    <i class="bi bi-file-pdf me-1"></i>Contrato PDF
+  </a>
   <a href="{{ url_for('contratos.lista') }}" class="btn btn-rose-outline btn-sm ms-auto"><i class="bi bi-arrow-left me-1"></i>Voltar</a>
 </div>
 
 <div class="row g-3">
-  <div class="col-md-6">
-    <div class="card h-100">
+  <!-- COLUNA ESQUERDA -->
+  <div class="col-md-4">
+    <!-- CLIENTE -->
+    <div class="card mb-3">
       <div class="card-header"><h6><i class="bi bi-person me-2"></i>Cliente</h6></div>
       <div class="card-body">
-        <p class="mb-1 fw-bold" style="color:var(--rose-light)">{{ contrato.cliente.nome }}</p>
-        <p class="mb-1" style="font-size:.82rem;color:var(--text-sec)">CPF: {{ contrato.cliente.cpf or '—' }}</p>
-        <p class="mb-1" style="font-size:.82rem;color:var(--text-sec)">Tel: {{ contrato.cliente.telefone or '—' }}</p>
-        <p class="mb-0" style="font-size:.82rem;color:var(--text-sec)">End: {{ contrato.cliente.endereco or '—' }}</p>
+        <p class="mb-1 fw-bold" style="color:var(--rose-dark);font-size:1rem">{{ contrato.cliente.nome }}</p>
+        {% if contrato.cliente.telefone %}
+        <p class="mb-1" style="font-size:.82rem;color:var(--text-sec)"><i class="bi bi-phone me-1"></i>{{ contrato.cliente.telefone }}</p>
+        {% endif %}
+        {% if contrato.cliente.email %}
+        <p class="mb-0" style="font-size:.82rem;color:var(--text-sec)"><i class="bi bi-envelope me-1"></i>{{ contrato.cliente.email }}</p>
+        {% endif %}
       </div>
     </div>
-  </div>
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-header"><h6><i class="bi bi-calendar3 me-2"></i>Datas & Status</h6></div>
+
+    <!-- DATAS -->
+    <div class="card mb-3">
+      <div class="card-header"><h6><i class="bi bi-calendar me-2"></i>Datas</h6></div>
       <div class="card-body">
-        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Retirada:</span> <strong>{{ contrato.data_retirada.strftime('%d/%m/%Y') }}</strong></p>
-        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Devolução:</span> <strong>{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}</strong></p>
-        {% if contrato.data_prova %}
-        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Prova:</span> <strong style="color:var(--rose-light)">{{ contrato.data_prova.strftime('%d/%m/%Y') }}</strong></p>
-        {% endif %}
-        {% if contrato.data_devolucao_real %}
-        <p class="mb-1"><span style="font-size:.78rem;color:var(--text-dim)">Devolvido em:</span> <strong>{{ contrato.data_devolucao_real.strftime('%d/%m/%Y') }}</strong></p>
-        {% endif %}
-        <div class="mt-2">
-          <span class="badge badge-{{ contrato.status }} fs-6">{{ contrato.status|title }}</span>
+        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Retirada</span>
+          <span class="fw-bold">{{ contrato.dt_inicio.strftime('%d/%m/%Y') }}</span>
         </div>
-        <form method="POST" action="{{ url_for('contratos.alterar_status', id=contrato.id) }}" class="mt-2 d-flex gap-2">
-          <select name="status" class="form-select form-select-sm">
-            <option value="ativo" {% if contrato.status=='ativo' %}selected{% endif %}>Ativo</option>
-            <option value="devolvido" {% if contrato.status=='devolvido' %}selected{% endif %}>Devolvido</option>
-            <option value="cancelado" {% if contrato.status=='cancelado' %}selected{% endif %}>Cancelado</option>
-          </select>
-          <button class="btn btn-rose btn-sm">Alterar</button>
-        </form>
+        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Devolução</span>
+          <span class="fw-bold">{{ contrato.dt_fim.strftime('%d/%m/%Y') }}</span>
+        </div>
+        {% if contrato.data_prova %}
+        <div class="d-flex justify-content-between" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Prova</span>
+          <span class="fw-bold">{{ contrato.data_prova.strftime('%d/%m/%Y') }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div class="card mb-3">
+      <div class="card-header"><h6><i class="bi bi-cash me-2"></i>Financeiro</h6></div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Valor Total</span>
+          <span class="fw-bold">R$ {{ '%.2f'|format(contrato.valor_total) }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Pago</span>
+          <span class="fw-bold" style="color:var(--green)">R$ {{ '%.2f'|format(contrato.valor_pago) }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Saldo</span>
+          <span class="fw-bold" style="color:{% if contrato.saldo_restante > 0 %}var(--red){% else %}var(--green){% endif %}">
+            R$ {{ '%.2f'|format(contrato.saldo_restante) }}
+          </span>
+        </div>
+        {% if contrato.forma_pagamento %}
+        <div class="d-flex justify-content-between" style="font-size:.82rem">
+          <span style="color:var(--text-dim)">Forma</span>
+          <span>{{ contrato.forma_pagamento }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-arrow-repeat me-2"></i>Status</h6></div>
+      <div class="card-body">
+        <div class="mb-2">
+          <span class="badge fs-6" style="
+            {% if contrato.status == 'ativo' %}background:#d1fae5;color:#065f46
+            {% elif contrato.status == 'atrasado' %}background:#fee2e2;color:#991b1b
+            {% elif contrato.status == 'devolvido' %}background:#dbeafe;color:#1e40af
+            {% else %}background:#f3f4f6;color:#6b7280{% endif %}
+          ">{{ contrato.status|capitalize }}</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header"><h6><i class="bi bi-bag-heart me-2"></i>Vestido(s)</h6></div>
+  <!-- COLUNA DIREITA -->
+  <div class="col-md-8">
+    <!-- PEÇAS -->
+    <div class="card mb-3">
+      <div class="card-header"><h6><i class="bi bi-bag-heart me-2"></i>Peças do Contrato</h6></div>
       <div class="card-body p-0">
+        {% if contrato.itens %}
         <table class="table mb-0">
-          <thead><tr><th>Código</th><th>Modelo</th><th>Cor</th><th>Tamanho</th><th>Preço Cobrado</th></tr></thead>
+          <thead><tr><th>Código</th><th>Modelo</th><th>Tamanho</th></tr></thead>
           <tbody>
             {% for item in contrato.itens %}
             <tr>
-              <td class="fw-bold" style="color:var(--rose)">{{ item.peca.codigo }}</td>
+              <td style="color:var(--rose-dark);font-weight:700">{{ item.peca.codigo }}</td>
               <td>{{ item.peca.modelo }}</td>
-              <td>{{ item.peca.cor }}</td>
               <td>{{ item.peca.tamanho }}</td>
-              <td style="color:var(--gold)">R$ {{ '%.2f'|format(item.preco_cobrado)|replace('.',',') }}</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header"><h6><i class="bi bi-cash me-2"></i>Valores</h6></div>
-      <div class="card-body">
-        <div class="d-flex justify-content-between mb-1"><span style="color:var(--text-sec)">Total</span><strong>R$ {{ '%.2f'|format(contrato.valor_total)|replace('.',',') }}</strong></div>
-        <div class="d-flex justify-content-between mb-1"><span style="color:var(--text-sec)">Pago</span><span style="color:var(--green)">R$ {{ '%.2f'|format(contrato.valor_pago)|replace('.',',') }}</span></div>
-        <hr>
-        <div class="d-flex justify-content-between"><span class="fw-bold">Saldo</span><strong style="color:var(--rose);font-size:1.1rem">R$ {{ '%.2f'|format(contrato.saldo_restante)|replace('.',',') }}</strong></div>
-        <hr>
-        <form method="POST" action="{{ url_for('contratos.registrar_pagamento', id=contrato.id) }}" class="row g-2">
-          <div class="col-6"><input type="number" step="0.01" name="valor" class="form-control form-control-sm" placeholder="Valor (R$)" required></div>
-          <div class="col-6">
-            <select name="forma" class="form-select form-select-sm">
-              <option value="pix">PIX</option>
-              <option value="dinheiro">Dinheiro</option>
-              <option value="cartao_credito">Crédito</option>
-              <option value="cartao_debito">Débito</option>
-            </select>
-          </div>
-          <div class="col-12"><input type="hidden" name="tipo" value="complemento"><button class="btn btn-rose btn-sm w-100">Registrar Pagamento</button></div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header"><h6><i class="bi bi-rulers me-2"></i>Medidas & Observações</h6></div>
-      <div class="card-body">
-        {% if contrato.observacoes %}
-        <pre style="white-space:pre-wrap;font-size:.82rem;color:var(--text);font-family:inherit;margin:0">{{ contrato.observacoes }}</pre>
         {% else %}
-        <span style="color:var(--text-dim)">Sem observações.</span>
+        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhuma peça.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if contrato.observacoes %}
+    <div class="card mb-3">
+      <div class="card-header"><h6><i class="bi bi-chat-text me-2"></i>Observações</h6></div>
+      <div class="card-body" style="font-size:.85rem">{{ contrato.observacoes }}</div>
+    </div>
+    {% endif %}
+
+    <!-- HISTÓRICO -->
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-clock-history me-2"></i>Histórico de Alterações</h6></div>
+      <div class="card-body">
+        <!-- Formulário nova atualização -->
+        <form method="POST" action="{{ url_for('contratos.add_historico', id=contrato.id) }}" class="mb-4">
+          <div class="mb-2">
+            <textarea name="mensagem" class="form-control" rows="2"
+              placeholder="Registre uma atualização, alteração ou observação..." required></textarea>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-rose btn-sm"><i class="bi bi-send me-1"></i>Registrar</button>
+            {% if contrato.cliente.telefone %}
+            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff"
+              onclick="enviarWhatsappHistorico('{{ contrato.cliente.nome }}', '{{ contrato.cliente.telefone }}', document.querySelector('textarea[name=mensagem]').value)">
+              <i class="bi bi-whatsapp me-1"></i>Registrar e Enviar WhatsApp
+            </button>
+            {% endif %}
+          </div>
+        </form>
+
+        <!-- Feed histórico -->
+        {% if historico %}
+        <div style="border-left:2px solid var(--border);padding-left:1rem">
+          {% for h in historico %}
+          <div class="mb-3 position-relative">
+            <div style="position:absolute;left:-1.4rem;top:.2rem;width:12px;height:12px;border-radius:50%;background:var(--rose);border:2px solid #fff"></div>
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <span class="fw-bold" style="font-size:.82rem;color:var(--rose-dark)">{{ h.autor or 'Sistema' }}</span>
+              <span style="font-size:.72rem;color:var(--text-dim)">{{ h.criado_em.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+            <p class="mb-0" style="font-size:.85rem;color:var(--text)">{{ h.mensagem }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhuma atualização ainda.</div>
         {% endif %}
       </div>
     </div>
   </div>
-
-  {% if contrato.pagamentos %}
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header"><h6><i class="bi bi-receipt me-2"></i>Histórico de Pagamentos</h6></div>
-      <div class="card-body p-0">
-        <table class="table mb-0">
-          <thead><tr><th>Data</th><th>Tipo</th><th>Forma</th><th>Valor</th></tr></thead>
-          <tbody>
-            {% for p in contrato.pagamentos %}
-            <tr>
-              <td style="color:var(--text-dim)">{{ p.data.strftime('%d/%m/%Y') }}</td>
-              <td>{{ p.tipo|title }}</td>
-              <td>{{ p.forma|replace('_',' ')|title }}</td>
-              <td style="color:var(--rose-light);font-weight:600">R$ {{ '%.2f'|format(p.valor)|replace('.',',') }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function enviarWhatsappHistorico(nome, telefone, mensagem) {
+  if (!mensagem.trim()) {
+    alert('Digite uma mensagem antes de enviar.');
+    return;
+  }
+  const tel = telefone.replace(/\D/g, '');
+  const texto = encodeURIComponent(
+    'Olá, ' + nome + '! 👰✨\n\n' +
+    'Atualização do seu contrato na Nobre Elegancy Noivas:\n\n' +
+    mensagem + '\n\n' +
+    'Qualquer dúvida estamos à disposição! 💕\n— Nobre Elegancy Noivas'
+  );
+  document.querySelector('form[action*="historico"]').submit();
+  setTimeout(() => {
+    window.open('https://wa.me/55' + tel + '?text=' + texto, '_blank');
+  }, 500);
+}
+</script>
 {% endblock %}
