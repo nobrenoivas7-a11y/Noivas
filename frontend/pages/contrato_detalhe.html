@@ -141,4 +141,46 @@
         </form>
 
         {% if historico %}
-        <div style="border-left:2px solid
+        <div style="border-left:2px solid var(--border);padding-left:1rem">
+          {% for h in historico %}
+          <div class="mb-3 position-relative">
+            <div style="position:absolute;left:-1.4rem;top:.2rem;width:12px;height:12px;border-radius:50%;background:var(--rose);border:2px solid #fff"></div>
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <span class="fw-bold" style="font-size:.82rem;color:var(--rose-dark)">{{ h.autor or 'Sistema' }}</span>
+              <span style="font-size:.72rem;color:var(--text-dim)">{{ h.criado_em.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+            <p class="mb-0" style="font-size:.85rem;color:var(--text)">{{ h.mensagem }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhuma atualização ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function enviarWhatsappHistorico(nome, telefone) {
+  const mensagem = document.getElementById('msg-historico').value.trim();
+  if (!mensagem) {
+    alert('Digite uma mensagem antes de enviar.');
+    return;
+  }
+  const tel = telefone.replace(/\D/g, '');
+  const texto = encodeURIComponent(
+    'Olá, ' + nome + '! 👰✨\n\n' +
+    'Atualização do seu contrato na Nobre Elegancy Noivas:\n\n' +
+    mensagem + '\n\n' +
+    'Qualquer dúvida estamos à disposição! 💕\n— Nobre Elegancy Noivas'
+  );
+  document.getElementById('form-historico').submit();
+  setTimeout(() => {
+    window.open('https://wa.me/55' + tel + '?text=' + texto, '_blank');
+  }, 500);
+}
+</script>
+{% endblock %}
