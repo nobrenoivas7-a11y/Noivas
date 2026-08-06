@@ -21,7 +21,7 @@ def lista():
     if q:
         query = query.filter(Cliente.nome.ilike(f'%{q}%'))
     contratos = query.order_by(Contrato.id.desc()).all()
-    return render_template('contratos.html', contratos=contratos,
+    return render_template('contratos_lista.html', contratos=contratos,
                            status_filter=status_filter, q=q)
 
 
