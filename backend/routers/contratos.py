@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, make_response
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from backend.app import db
 from backend.models.contrato import Contrato, ContratoItem, Pagamento
@@ -33,8 +33,8 @@ def novo():
     if request.method == 'POST':
         try:
             cliente_id = request.form.get('cliente_id')
-            dt_inicio = datetime.date.fromisoformat(request.form['dt_inicio'])
-            dt_fim = datetime.date.fromisoformat(request.form['dt_fim'])
+            data_retirada = datetime.date.fromisoformat(request.form['data_retirada'])
+            data_devolucao = datetime.date.fromisoformat(request.form['data_devolucao'])
             data_prova = request.form.get('data_prova') or None
             if data_prova:
                 data_prova = datetime.date.fromisoformat(data_prova)
@@ -45,12 +45,12 @@ def novo():
 
             contrato = Contrato(
                 cliente_id=cliente_id,
-                dt_inicio=dt_inicio,
-                dt_fim=dt_fim,
+                usuario_id=current_user.id,
+                data_retirada=data_retirada,
+                data_devolucao=data_devolucao,
                 data_prova=data_prova,
                 valor_total=valor_total,
                 valor_pago=valor_pago,
-                forma_pagamento=forma_pagamento,
                 observacoes=observacoes,
                 status='ativo'
             )
@@ -68,12 +68,11 @@ def novo():
                     contrato_id=contrato.id,
                     valor=valor_pago,
                     forma=forma_pagamento,
-                    data=datetime.date.today()
+                    data=datetime.datetime.now()
                 )
                 db.session.add(pag)
 
-            # Histórico inicial
-            hist = db.session.execute(text("""
+            db.session.execute(text("""
                 INSERT INTO contrato_historico (contrato_id, autor, mensagem)
                 VALUES (:cid, :autor, :msg)
             """), {'cid': contrato.id, 'autor': current_user.nome,
@@ -120,20 +119,18 @@ def editar(id):
 
             novo_status = request.form.get('status', contrato.status)
             if novo_status != contrato.status:
-                alteracoes.append(f'Status alterado de "{contrato.status}" para "{novo_status}".')
+                alteracoes.append(f'Status alterado para "{novo_status}".')
             contrato.status = novo_status
 
             nova_prova = request.form.get('data_prova') or None
             if nova_prova:
                 nova_prova = datetime.date.fromisoformat(nova_prova)
-            if nova_prova != contrato.data_prova:
-                alteracoes.append(f'Data da prova alterada para {nova_prova.strftime("%d/%m/%Y") if nova_prova else "removida"}.')
             contrato.data_prova = nova_prova
 
-            novo_dt_fim = datetime.date.fromisoformat(request.form['dt_fim'])
-            if novo_dt_fim != contrato.dt_fim:
-                alteracoes.append(f'Data de devolução alterada para {novo_dt_fim.strftime("%d/%m/%Y")}.')
-            contrato.dt_fim = novo_dt_fim
+            nova_devolucao = datetime.date.fromisoformat(request.form['data_devolucao'])
+            if nova_devolucao != contrato.data_devolucao:
+                alteracoes.append(f'Data de devolução alterada para {nova_devolucao.strftime("%d/%m/%Y")}.')
+            contrato.data_devolucao = nova_devolucao
 
             novo_valor = float(request.form.get('valor_total') or 0)
             if novo_valor != contrato.valor_total:
@@ -145,10 +142,8 @@ def editar(id):
                 alteracoes.append('Observações atualizadas.')
             contrato.observacoes = novo_obs
 
-            contrato.forma_pagamento = request.form.get('forma_pagamento', '')
-            contrato.dt_inicio = datetime.date.fromisoformat(request.form['dt_inicio'])
+            contrato.data_retirada = datetime.date.fromisoformat(request.form['data_retirada'])
 
-            # Peças
             novas_peca_ids = request.form.getlist('peca_ids')
             antigas = set(peca_ids_atuais)
             novas = set(novas_peca_ids)
@@ -160,7 +155,6 @@ def editar(id):
                     item = ContratoItem(contrato_id=contrato.id, peca_id=int(peca_id))
                     db.session.add(item)
 
-            # Novo pagamento
             novo_pagamento = float(request.form.get('novo_pagamento') or 0)
             nova_forma = request.form.get('nova_forma_pagamento', '')
             if novo_pagamento > 0:
@@ -168,13 +162,12 @@ def editar(id):
                     contrato_id=contrato.id,
                     valor=novo_pagamento,
                     forma=nova_forma,
-                    data=datetime.date.today()
+                    data=datetime.datetime.now()
                 )
                 db.session.add(pag)
                 contrato.valor_pago = (contrato.valor_pago or 0) + novo_pagamento
                 alteracoes.append(f'Pagamento de R$ {novo_pagamento:.2f} registrado.')
 
-            # Registrar histórico
             msg_final = mensagem_manual
             if alteracoes:
                 msg_final = (mensagem_manual + '\n' if mensagem_manual else '') + '\n'.join(alteracoes)
