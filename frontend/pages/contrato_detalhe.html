@@ -90,7 +90,27 @@
   </div>
 
   <div class="col-md-8">
-    <!-- PEÇAS -->
+    <!-- PEÇAS OU CROQUI -->
+    {% if contrato.primeiro_aluguel %}
+    <div class="card mb-3">
+      <div class="card-header"><h6><i class="bi bi-stars me-2"></i>Primeiro Aluguel — Croqui do Vestido</h6></div>
+      <div class="card-body text-center">
+        {% if contrato.foto_croqui %}
+        <img src="{{ contrato.foto_croqui }}" style="max-width:100%;max-height:400px;border-radius:8px;border:1px solid var(--border)">
+        {% if contrato.cliente.telefone %}
+        <div class="mt-3">
+          <a href="https://wa.me/55{{ contrato.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text={{ ('Olá, ' + contrato.cliente.nome + '! 👰✨ Segue o croqui do seu vestido: ' + contrato.foto_croqui)|urlencode }}"
+             target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff">
+            <i class="bi bi-whatsapp me-1"></i>Enviar Croqui para Cliente
+          </a>
+        </div>
+        {% endif %}
+        {% else %}
+        <p style="color:var(--text-dim);font-size:.82rem">Nenhuma foto de croqui cadastrada.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
     <div class="card mb-3">
       <div class="card-header"><h6><i class="bi bi-bag-heart me-2"></i>Peças do Contrato</h6></div>
       <div class="card-body p-0">
@@ -112,6 +132,7 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
 
     {% if contrato.observacoes %}
     <div class="card mb-3">
