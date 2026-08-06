@@ -18,7 +18,6 @@
 </div>
 
 <div class="row g-3">
-  <!-- COLUNA ESQUERDA -->
   <div class="col-md-4">
     <!-- CLIENTE -->
     <div class="card mb-3">
@@ -40,11 +39,11 @@
       <div class="card-body">
         <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
           <span style="color:var(--text-dim)">Retirada</span>
-          <span class="fw-bold">{{ contrato.dt_inicio.strftime('%d/%m/%Y') }}</span>
+          <span class="fw-bold">{{ contrato.data_retirada.strftime('%d/%m/%Y') }}</span>
         </div>
         <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
           <span style="color:var(--text-dim)">Devolução</span>
-          <span class="fw-bold">{{ contrato.dt_fim.strftime('%d/%m/%Y') }}</span>
+          <span class="fw-bold">{{ contrato.data_devolucao.strftime('%d/%m/%Y') }}</span>
         </div>
         {% if contrato.data_prova %}
         <div class="d-flex justify-content-between" style="font-size:.82rem">
@@ -67,18 +66,12 @@
           <span style="color:var(--text-dim)">Pago</span>
           <span class="fw-bold" style="color:var(--green)">R$ {{ '%.2f'|format(contrato.valor_pago) }}</span>
         </div>
-        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem">
+        <div class="d-flex justify-content-between" style="font-size:.82rem">
           <span style="color:var(--text-dim)">Saldo</span>
           <span class="fw-bold" style="color:{% if contrato.saldo_restante > 0 %}var(--red){% else %}var(--green){% endif %}">
             R$ {{ '%.2f'|format(contrato.saldo_restante) }}
           </span>
         </div>
-        {% if contrato.forma_pagamento %}
-        <div class="d-flex justify-content-between" style="font-size:.82rem">
-          <span style="color:var(--text-dim)">Forma</span>
-          <span>{{ contrato.forma_pagamento }}</span>
-        </div>
-        {% endif %}
       </div>
     </div>
 
@@ -86,19 +79,16 @@
     <div class="card">
       <div class="card-header"><h6><i class="bi bi-arrow-repeat me-2"></i>Status</h6></div>
       <div class="card-body">
-        <div class="mb-2">
-          <span class="badge fs-6" style="
-            {% if contrato.status == 'ativo' %}background:#d1fae5;color:#065f46
-            {% elif contrato.status == 'atrasado' %}background:#fee2e2;color:#991b1b
-            {% elif contrato.status == 'devolvido' %}background:#dbeafe;color:#1e40af
-            {% else %}background:#f3f4f6;color:#6b7280{% endif %}
-          ">{{ contrato.status|capitalize }}</span>
-        </div>
+        <span class="badge fs-6" style="
+          {% if contrato.status == 'ativo' %}background:#d1fae5;color:#065f46
+          {% elif contrato.status == 'atrasado' %}background:#fee2e2;color:#991b1b
+          {% elif contrato.status == 'devolvido' %}background:#dbeafe;color:#1e40af
+          {% else %}background:#f3f4f6;color:#6b7280{% endif %}
+        ">{{ contrato.status|capitalize }}</span>
       </div>
     </div>
   </div>
 
-  <!-- COLUNA DIREITA -->
   <div class="col-md-8">
     <!-- PEÇAS -->
     <div class="card mb-3">
@@ -134,64 +124,21 @@
     <div class="card">
       <div class="card-header"><h6><i class="bi bi-clock-history me-2"></i>Histórico de Alterações</h6></div>
       <div class="card-body">
-        <!-- Formulário nova atualização -->
-        <form method="POST" action="{{ url_for('contratos.add_historico', id=contrato.id) }}" class="mb-4">
+        <form method="POST" action="{{ url_for('contratos.add_historico', id=contrato.id) }}" class="mb-4" id="form-historico">
           <div class="mb-2">
-            <textarea name="mensagem" class="form-control" rows="2"
+            <textarea name="mensagem" id="msg-historico" class="form-control" rows="2"
               placeholder="Registre uma atualização, alteração ou observação..." required></textarea>
           </div>
-          <div class="d-flex gap-2 align-items-center">
-            <button class="btn btn-rose btn-sm"><i class="bi bi-send me-1"></i>Registrar</button>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-rose btn-sm"><i class="bi bi-send me-1"></i>Registrar</button>
             {% if contrato.cliente.telefone %}
             <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff"
-              onclick="enviarWhatsappHistorico('{{ contrato.cliente.nome }}', '{{ contrato.cliente.telefone }}', document.querySelector('textarea[name=mensagem]').value)">
+              onclick="enviarWhatsappHistorico('{{ contrato.cliente.nome }}', '{{ contrato.cliente.telefone }}')">
               <i class="bi bi-whatsapp me-1"></i>Registrar e Enviar WhatsApp
             </button>
             {% endif %}
           </div>
         </form>
 
-        <!-- Feed histórico -->
         {% if historico %}
-        <div style="border-left:2px solid var(--border);padding-left:1rem">
-          {% for h in historico %}
-          <div class="mb-3 position-relative">
-            <div style="position:absolute;left:-1.4rem;top:.2rem;width:12px;height:12px;border-radius:50%;background:var(--rose);border:2px solid #fff"></div>
-            <div class="d-flex justify-content-between align-items-start mb-1">
-              <span class="fw-bold" style="font-size:.82rem;color:var(--rose-dark)">{{ h.autor or 'Sistema' }}</span>
-              <span style="font-size:.72rem;color:var(--text-dim)">{{ h.criado_em.strftime('%d/%m/%Y %H:%M') }}</span>
-            </div>
-            <p class="mb-0" style="font-size:.85rem;color:var(--text)">{{ h.mensagem }}</p>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhuma atualização ainda.</div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-function enviarWhatsappHistorico(nome, telefone, mensagem) {
-  if (!mensagem.trim()) {
-    alert('Digite uma mensagem antes de enviar.');
-    return;
-  }
-  const tel = telefone.replace(/\D/g, '');
-  const texto = encodeURIComponent(
-    'Olá, ' + nome + '! 👰✨\n\n' +
-    'Atualização do seu contrato na Nobre Elegancy Noivas:\n\n' +
-    mensagem + '\n\n' +
-    'Qualquer dúvida estamos à disposição! 💕\n— Nobre Elegancy Noivas'
-  );
-  document.querySelector('form[action*="historico"]').submit();
-  setTimeout(() => {
-    window.open('https://wa.me/55' + tel + '?text=' + texto, '_blank');
-  }, 500);
-}
-</script>
-{% endblock %}
+        <div style="border-left:2px solid
