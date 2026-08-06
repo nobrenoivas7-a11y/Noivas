@@ -28,23 +28,56 @@ def lista():
 @bp.route('/novo', methods=['GET', 'POST'])
 @login_required
 def novo():
-    clientes = Cliente.query.order_by(Cliente.nome).all()
     pecas = Peca.query.filter_by(status='disponivel').order_by(Peca.codigo).all()
     if request.method == 'POST':
         try:
-            cliente_id = request.form.get('cliente_id')
+            # Dados da cliente
+            nome_cliente = request.form.get('nome_cliente', '').strip()
+            telefone = request.form.get('telefone', '').strip()
+            cpf = request.form.get('cpf', '').strip()
+            email = request.form.get('email', '').strip()
+            endereco = request.form.get('endereco', '').strip()
+
+            # Buscar cliente existente pelo telefone ou nome
+            cliente = None
+            if telefone:
+                cliente = Cliente.query.filter_by(telefone=telefone).first()
+            if not cliente and nome_cliente:
+                cliente = Cliente.query.filter(
+                    Cliente.nome.ilike(nome_cliente)
+                ).first()
+
+            # Criar cliente se não existir
+            if not cliente:
+                cliente = Cliente(
+                    nome=nome_cliente,
+                    telefone=telefone,
+                    cpf=cpf if cpf else None,
+                    email=email if email else None,
+                    endereco=endereco if endereco else None,
+                )
+                db.session.add(cliente)
+                db.session.flush()
+            else:
+                # Atualizar dados se vieram preenchidos
+                if cpf: cliente.cpf = cpf
+                if email: cliente.email = email
+                if endereco: cliente.endereco = endereco
+
+            # Datas
             data_retirada = datetime.date.fromisoformat(request.form['data_retirada'])
             data_devolucao = datetime.date.fromisoformat(request.form['data_devolucao'])
             data_prova = request.form.get('data_prova') or None
             if data_prova:
                 data_prova = datetime.date.fromisoformat(data_prova)
+
             valor_total = float(request.form.get('valor_total') or 0)
             valor_pago = float(request.form.get('valor_pago') or 0)
             forma_pagamento = request.form.get('forma_pagamento', '')
             observacoes = request.form.get('observacoes', '')
 
             contrato = Contrato(
-                cliente_id=cliente_id,
+                cliente_id=cliente.id,
                 usuario_id=current_user.id,
                 data_retirada=data_retirada,
                 data_devolucao=data_devolucao,
@@ -79,12 +112,12 @@ def novo():
                    'msg': 'Contrato criado.'})
 
             db.session.commit()
-            flash('Contrato criado com sucesso!', 'success')
+            flash(f'Contrato criado com sucesso! Cliente: {cliente.nome}', 'success')
             return redirect(url_for('contratos.detalhe', id=contrato.id))
         except Exception as e:
             db.session.rollback()
             flash(f'Erro: {str(e)}', 'danger')
-    return render_template('contrato_novo.html', clientes=clientes, pecas=pecas)
+    return render_template('contrato_novo.html', pecas=pecas)
 
 
 @bp.route('/<int:id>')
