@@ -31,14 +31,11 @@ def novo():
     pecas = Peca.query.filter_by(status='disponivel').order_by(Peca.codigo).all()
     if request.method == 'POST':
         try:
-            # Dados da cliente
             nome_cliente = request.form.get('nome_cliente', '').strip()
             telefone = request.form.get('telefone', '').strip()
             cpf = request.form.get('cpf', '').strip()
-            email = request.form.get('email', '').strip()
             endereco = request.form.get('endereco', '').strip()
 
-            # Buscar cliente existente pelo telefone ou nome
             cliente = None
             if telefone:
                 cliente = Cliente.query.filter_by(telefone=telefone).first()
@@ -47,24 +44,19 @@ def novo():
                     Cliente.nome.ilike(nome_cliente)
                 ).first()
 
-            # Criar cliente se não existir
             if not cliente:
                 cliente = Cliente(
                     nome=nome_cliente,
                     telefone=telefone,
                     cpf=cpf if cpf else None,
-                    email=email if email else None,
                     endereco=endereco if endereco else None,
                 )
                 db.session.add(cliente)
                 db.session.flush()
             else:
-                # Atualizar dados se vieram preenchidos
                 if cpf: cliente.cpf = cpf
-                if email: cliente.email = email
                 if endereco: cliente.endereco = endereco
 
-            # Datas
             data_retirada = datetime.date.fromisoformat(request.form['data_retirada'])
             data_devolucao = datetime.date.fromisoformat(request.form['data_devolucao'])
             data_prova = request.form.get('data_prova') or None
@@ -75,6 +67,8 @@ def novo():
             valor_pago = float(request.form.get('valor_pago') or 0)
             forma_pagamento = request.form.get('forma_pagamento', '')
             observacoes = request.form.get('observacoes', '')
+            primeiro_aluguel = bool(request.form.get('primeiro_aluguel'))
+            foto_croqui = request.form.get('foto_croqui', '').strip() or None
 
             contrato = Contrato(
                 cliente_id=cliente.id,
@@ -85,16 +79,19 @@ def novo():
                 valor_total=valor_total,
                 valor_pago=valor_pago,
                 observacoes=observacoes,
+                primeiro_aluguel=primeiro_aluguel,
+                foto_croqui=foto_croqui,
                 status='ativo'
             )
             db.session.add(contrato)
             db.session.flush()
 
-            peca_ids = request.form.getlist('peca_ids')
-            for peca_id in peca_ids:
-                if peca_id:
-                    item = ContratoItem(contrato_id=contrato.id, peca_id=int(peca_id))
-                    db.session.add(item)
+            if not primeiro_aluguel:
+                peca_ids = request.form.getlist('peca_ids')
+                for peca_id in peca_ids:
+                    if peca_id:
+                        item = ContratoItem(contrato_id=contrato.id, peca_id=int(peca_id))
+                        db.session.add(item)
 
             if valor_pago > 0:
                 pag = Pagamento(
@@ -105,11 +102,13 @@ def novo():
                 )
                 db.session.add(pag)
 
+            msg_inicial = 'Contrato criado.'
+            if primeiro_aluguel:
+                msg_inicial += ' Primeiro aluguel — croqui cadastrado.'
             db.session.execute(text("""
                 INSERT INTO contrato_historico (contrato_id, autor, mensagem)
                 VALUES (:cid, :autor, :msg)
-            """), {'cid': contrato.id, 'autor': current_user.nome,
-                   'msg': 'Contrato criado.'})
+            """), {'cid': contrato.id, 'autor': current_user.nome, 'msg': msg_inicial})
 
             db.session.commit()
             flash(f'Contrato criado com sucesso! Cliente: {cliente.nome}', 'success')
