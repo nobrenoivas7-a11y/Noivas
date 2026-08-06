@@ -176,16 +176,22 @@ def editar(id):
 
             contrato.data_retirada = datetime.date.fromisoformat(request.form['data_retirada'])
 
-            novas_peca_ids = request.form.getlist('peca_ids')
-            antigas = set(peca_ids_atuais)
-            novas = set(novas_peca_ids)
-            if antigas != novas:
-                alteracoes.append('Peças do contrato atualizadas.')
-            ContratoItem.query.filter_by(contrato_id=contrato.id).delete()
-            for peca_id in novas_peca_ids:
-                if peca_id:
-                    item = ContratoItem(contrato_id=contrato.id, peca_id=int(peca_id))
-                    db.session.add(item)
+            if contrato.primeiro_aluguel:
+                nova_foto = request.form.get('foto_croqui', '').strip()
+                if nova_foto and nova_foto != (contrato.foto_croqui or ''):
+                    contrato.foto_croqui = nova_foto
+                    alteracoes.append('Croqui do vestido atualizado.')
+            else:
+                novas_peca_ids = request.form.getlist('peca_ids')
+                antigas = set(peca_ids_atuais)
+                novas = set(novas_peca_ids)
+                if antigas != novas:
+                    alteracoes.append('Peças do contrato atualizadas.')
+                ContratoItem.query.filter_by(contrato_id=contrato.id).delete()
+                for peca_id in novas_peca_ids:
+                    if peca_id:
+                        item = ContratoItem(contrato_id=contrato.id, peca_id=int(peca_id))
+                        db.session.add(item)
 
             novo_pagamento = float(request.form.get('novo_pagamento') or 0)
             nova_forma = request.form.get('nova_forma_pagamento', '')
