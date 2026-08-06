@@ -1,56 +1,97 @@
 {% extends "base.html" %}
 {% block title %}Contratos — Nobre Elegancy{% endblock %}
-{% block topbar_title %}<i class="bi bi-file-earmark-text me-2" style="color:var(--rose)"></i>Contratos{% endblock %}
+{% block topbar_title %}Contratos{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
-    <h6 class="m-0">Todos os Contratos</h6>
-    <div class="d-flex gap-2 flex-wrap">
-      <form class="d-flex gap-2" method="GET">
-        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar cliente..." style="width:180px">
-        <select name="status" class="form-select form-select-sm" style="width:140px">
-          <option value="">Todos</option>
-          <option value="ativo" {% if status_filtro=='ativo' %}selected{% endif %}>Ativo</option>
-          <option value="atrasado" {% if status_filtro=='atrasado' %}selected{% endif %}>Atrasado</option>
-          <option value="devolvido" {% if status_filtro=='devolvido' %}selected{% endif %}>Devolvido</option>
-          <option value="cancelado" {% if status_filtro=='cancelado' %}selected{% endif %}>Cancelado</option>
-        </select>
-        <button class="btn btn-rose btn-sm">Filtrar</button>
-      </form>
-      <a href="{{ url_for('contratos.novo') }}" class="btn btn-rose btn-sm"><i class="bi bi-plus me-1"></i>Novo</a>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="?status=" class="btn btn-sm {% if not status_filter %}btn-rose{% else %}btn-rose-outline{% endif %}">Todos</a>
+    <a href="?status=ativo" class="btn btn-sm {% if status_filter=='ativo' %}btn-rose{% else %}btn-rose-outline{% endif %}">Ativo</a>
+    <a href="?status=atrasado" class="btn btn-sm {% if status_filter=='atrasado' %}btn-rose{% else %}btn-rose-outline{% endif %}">Atrasado</a>
+    <a href="?status=devolvido" class="btn btn-sm {% if status_filter=='devolvido' %}btn-rose{% else %}btn-rose-outline{% endif %}">Devolvido</a>
+    <a href="?status=cancelado" class="btn btn-sm {% if status_filter=='cancelado' %}btn-rose{% else %}btn-rose-outline{% endif %}">Cancelado</a>
   </div>
+  <a href="{{ url_for('contratos.novo') }}" class="btn btn-rose btn-sm"><i class="bi bi-plus-circle me-1"></i>Novo Contrato</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="GET" class="d-flex gap-2">
+      <input type="hidden" name="status" value="{{ status_filter }}">
+      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar por nome da cliente...">
+      <button class="btn btn-rose btn-sm px-3"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h6><i class="bi bi-file-earmark-text me-2"></i>{{ contratos|length }} contrato(s) encontrado(s)</h6></div>
   <div class="card-body p-0">
     {% if contratos %}
-    <div class="table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>#</th><th>Cliente</th><th>Vestido</th><th>Retirada</th><th>Devolução</th><th>Total</th><th>Saldo</th><th>Status</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>Nº</th>
+          <th>Cliente</th>
+          <th>Período</th>
+          <th>Peças</th>
+          <th>Valor</th>
+          <th>Saldo</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
       <tbody>
         {% for c in contratos %}
         <tr>
-          <td><a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="fw-bold text-decoration-none" style="color:var(--rose)">#{{ '%04d'|format(c.id) }}</a></td>
-          <td>{{ c.cliente.nome }}</td>
-          <td style="font-size:.8rem">{% for i in c.itens %}{{ i.peca.codigo }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-          <td>{{ c.data_retirada.strftime('%d/%m/%Y') }}</td>
-          <td>{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
-          <td>R$ {{ '%.2f'|format(c.valor_total)|replace('.',',') }}</td>
-          <td class="fw-bold" style="color:var(--rose)">R$ {{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}</td>
           <td>
-            <span class="badge badge-{{ c.status }}">{{ c.status|title }}</span>
+            <a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="contract-id">#{{ '%04d'|format(c.id) }}</a>
+          </td>
+          <td class="fw-bold">{{ c.cliente.nome }}</td>
+          <td style="font-size:.78rem;color:var(--text-sec)">
+            {{ c.dt_inicio.strftime('%d/%m/%Y') }} →<br>{{ c.dt_fim.strftime('%d/%m/%Y') }}
+          </td>
+          <td style="font-size:.78rem;color:var(--text-sec)">
+            {% for item in c.itens %}{{ item.peca.modelo }} - {{ item.peca.tamanho }}{% if not loop.last %} / {% endif %}{% endfor %}
+          </td>
+          <td class="fw-bold">{{ '%.2f'|format(c.valor_total) }}</td>
+          <td style="color:{% if c.saldo_restante > 0 %}var(--red){% else %}var(--green){% endif %}">
+            {{ '%.2f'|format(c.saldo_restante) }}
           </td>
           <td>
-            <div class="d-flex gap-1">
-              <a href="{{ url_for('contratos.pdf', id=c.id) }}" target="_blank" class="btn btn-sm btn-rose-outline" title="PDF"><i class="bi bi-file-pdf"></i></a>
+            <form method="POST" action="{{ url_for('contratos.alterar_status', id=c.id) }}" id="form-status-{{ c.id }}">
+              <select name="status" class="form-select form-select-sm"
+                onchange="confirmarStatus({{ c.id }}, this, '{{ c.cliente.nome }}', '{{ c.cliente.telefone or '' }}')"
+                style="width:auto;min-width:110px;font-size:.75rem">
+                <option value="ativo" {% if c.status=='ativo' %}selected{% endif %}>Ativo</option>
+                <option value="atrasado" {% if c.status=='atrasado' %}selected{% endif %}>Atrasado</option>
+                <option value="devolvido" {% if c.status=='devolvido' %}selected{% endif %}>Devolvido</option>
+                <option value="cancelado" {% if c.status=='cancelado' %}selected{% endif %}>Cancelado</option>
+              </select>
+            </form>
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="btn btn-rose-outline btn-sm">
+                <i class="bi bi-eye me-1"></i>Detalhes
+              </a>
+              <a href="{{ url_for('contratos.editar', id=c.id) }}" class="btn btn-sm" style="background:#f59e0b;color:#fff;font-size:.78rem">
+                <i class="bi bi-pencil me-1"></i>Editar
+              </a>
               {% if c.cliente.telefone %}
-              <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá+{{ c.cliente.nome|urlencode }},+seu+contrato+%23{{ '%04d'|format(c.id) }}+está+em+aberto.+Saldo:+R$+{{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+              <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}"
+                 target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff;font-size:.78rem">
+                <i class="bi bi-whatsapp me-1"></i>WhatsApp
+              </a>
               {% endif %}
-              <form method="POST" action="{{ url_for('contratos.alterar_status', id=c.id) }}" class="d-inline">
-                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto">
-                  <option value="ativo" {% if c.status=='ativo' %}selected{% endif %}>Ativo</option>
-                  <option value="devolvido" {% if c.status=='devolvido' %}selected{% endif %}>Devolvido</option>
-                  <option value="cancelado" {% if c.status=='cancelado' %}selected{% endif %}>Cancelado</option>
-                </select>
+              <a href="{{ url_for('contratos.pdf', id=c.id) }}" target="_blank" class="btn btn-sm" style="background:#3b82f6;color:#fff;font-size:.78rem">
+                <i class="bi bi-file-pdf me-1"></i>Contrato
+              </a>
+              <form method="POST" action="{{ url_for('contratos.excluir', id=c.id) }}"
+                    onsubmit="return confirm('Excluir contrato #{{ '%04d'|format(c.id) }}?')">
+                <button class="btn btn-sm btn-outline-danger w-100" style="font-size:.78rem">
+                  <i class="bi bi-trash me-1"></i>Excluir
+                </button>
               </form>
             </div>
           </td>
@@ -58,14 +99,46 @@
         {% endfor %}
       </tbody>
     </table>
-    </div>
     {% else %}
-    <div class="text-center py-5 text-muted">
-      <i class="bi bi-file-earmark-x" style="font-size:2.5rem;color:var(--rose-mid)"></i>
-      <p class="mt-2">Nenhum contrato encontrado.</p>
-      <a href="{{ url_for('contratos.novo') }}" class="btn btn-rose btn-sm">Criar primeiro contrato</a>
+    <div class="text-center py-4" style="color:var(--text-dim)">
+      <i class="bi bi-file-earmark-text" style="font-size:2rem"></i>
+      <p class="mt-2 mb-0">Nenhum contrato encontrado.</p>
     </div>
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('select[name="status"]').forEach(sel => {
+  sel.dataset.original = sel.value;
+});
+
+function confirmarStatus(id, sel, nomeCliente, telefone) {
+  const novoStatus = sel.value;
+  if (novoStatus === 'devolvido') {
+    if (confirm('Marcar como devolvido e enviar mensagem de agradecimento para ' + nomeCliente + '?')) {
+      document.getElementById('form-status-' + id).submit();
+      if (telefone) {
+        const tel = telefone.replace(/\D/g, '');
+        const msg = encodeURIComponent(
+          'Olá, ' + nomeCliente + '! 👰✨\n\n' +
+          'A equipe Nobre Elegancy Noivas agradece imensamente a sua confiança em nós para um dos momentos mais especiais da sua vida! 🌸\n\n' +
+          'Foi uma honra fazer parte do seu dia tão especial. Esperamos ter superado suas expectativas e que você tenha se sentido ainda mais linda! 💕\n\n' +
+          'Conta sempre conosco! 🤍\n\n' +
+          '— Nobre Elegancy Noivas'
+        );
+        setTimeout(() => {
+          window.open('https://wa.me/55' + tel + '?text=' + msg, '_blank');
+        }, 500);
+      }
+    } else {
+      sel.value = sel.dataset.original;
+    }
+  } else {
+    document.getElementById('form-status-' + id).submit();
+  }
+}
+</script>
 {% endblock %}
