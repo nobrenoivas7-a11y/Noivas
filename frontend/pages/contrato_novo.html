@@ -6,7 +6,7 @@
 <div class="card" style="max-width:800px">
   <div class="card-header"><h6><i class="bi bi-plus-circle me-2"></i>Novo Contrato</h6></div>
   <div class="card-body">
-    <form method="POST">
+    <form method="POST" id="form-contrato">
       <div class="row g-3">
 
         <!-- DADOS DA NOIVA -->
@@ -30,15 +30,21 @@
                   <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">E-mail</label>
-                  <input type="email" name="email" class="form-control" placeholder="email@exemplo.com">
-                </div>
-                <div class="col-12">
                   <label class="form-label">Endereço</label>
                   <input type="text" name="endereco" class="form-control" placeholder="Rua, número, bairro, cidade">
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- TOGGLE PRIMEIRO ALUGUEL -->
+        <div class="col-12">
+          <div class="form-check form-switch p-3" style="background:var(--card2);border:1px solid var(--border);border-radius:8px">
+            <input class="form-check-input" type="checkbox" role="switch" id="primeiroAluguel" name="primeiro_aluguel" onchange="toggleModo()">
+            <label class="form-check-label fw-bold" for="primeiroAluguel" style="color:var(--rose-dark)">
+              <i class="bi bi-stars me-1"></i>Primeiro Aluguel (vestido sob medida — cadastrar croqui)
+            </label>
           </div>
         </div>
 
@@ -56,8 +62,8 @@
           <input type="date" name="data_prova" class="form-control">
         </div>
 
-        <!-- PEÇAS -->
-        <div class="col-12">
+        <!-- PEÇAS DO ESTOQUE (modo normal) -->
+        <div class="col-12" id="bloco-estoque">
           <label class="form-label">Vestidos *</label>
           <div id="pecas-selecionadas" class="mb-2 d-flex flex-wrap gap-2"></div>
           <select id="select-peca" class="form-select" onchange="adicionarPeca(this)">
@@ -70,6 +76,15 @@
           </select>
           <div id="pecas-inputs"></div>
           <div class="form-text" style="color:var(--text-dim);font-size:.72rem">Você pode adicionar mais de um vestido.</div>
+        </div>
+
+        <!-- CROQUI (modo primeiro aluguel) -->
+        <div class="col-12" id="bloco-croqui" style="display:none">
+          <label class="form-label">Foto do Croqui</label>
+          <input type="file" id="input-foto-croqui" accept="image/*" class="form-control mb-2">
+          <div id="preview-croqui" class="mb-2"></div>
+          <input type="hidden" name="foto_croqui" id="foto_croqui_url">
+          <div id="upload-status" style="font-size:.78rem;color:var(--text-dim)"></div>
         </div>
 
         <!-- FINANCEIRO -->
@@ -112,7 +127,14 @@
 
 {% block scripts %}
 <script>
+const IMGBB_KEY = '5f48d7abf754e28597571e6671806d19';
 const pecasSelecionadas = new Set();
+
+function toggleModo() {
+  const isPrimeiro = document.getElementById('primeiroAluguel').checked;
+  document.getElementById('bloco-estoque').style.display = isPrimeiro ? 'none' : 'block';
+  document.getElementById('bloco-croqui').style.display = isPrimeiro ? 'block' : 'none';
+}
 
 function adicionarPeca(sel) {
   const id = sel.value;
@@ -123,14 +145,12 @@ function adicionarPeca(sel) {
   }
   pecasSelecionadas.add(id);
 
-  // Badge visual
   const badge = document.createElement('span');
   badge.className = 'badge d-flex align-items-center gap-1';
   badge.style.cssText = 'background:var(--rose-glow);color:var(--rose-dark);border:1px solid var(--border);font-size:.78rem;padding:.4rem .7rem';
   badge.innerHTML = label + ' <button type="button" onclick="removerPeca(\'' + id + '\', this.parentElement)" style="background:none;border:none;color:var(--rose-dark);font-size:1rem;line-height:1;cursor:pointer">×</button>';
   document.getElementById('pecas-selecionadas').appendChild(badge);
 
-  // Input hidden
   const input = document.createElement('input');
   input.type = 'hidden';
   input.name = 'peca_ids';
@@ -147,5 +167,37 @@ function removerPeca(id, badge) {
   const input = document.getElementById('peca-input-' + id);
   if (input) input.remove();
 }
+
+document.getElementById('input-foto-croqui').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('upload-status');
+  status.textContent = 'Enviando foto...';
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_KEY, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('foto_croqui_url').value = data.data.url;
+      document.getElementById('preview-croqui').innerHTML =
+        '<img src="' + data.data.url + '" style="max-width:200px;border-radius:8px;border:1px solid var(--border)">';
+      status.textContent = 'Foto enviada com sucesso!';
+      status.style.color = 'var(--green)';
+    } else {
+      status.textContent = 'Erro ao enviar foto.';
+      status.style.color = 'var(--red)';
+    }
+  } catch (err) {
+    status.textContent = 'Erro ao enviar foto.';
+    status.style.color = 'var(--red)';
+  }
+});
 </script>
 {% endblock %}
