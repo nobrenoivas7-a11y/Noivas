@@ -49,14 +49,14 @@
           </td>
           <td class="fw-bold">{{ c.cliente.nome }}</td>
           <td style="font-size:.78rem;color:var(--text-sec)">
-            {{ c.dt_inicio.strftime('%d/%m/%Y') }} →<br>{{ c.dt_fim.strftime('%d/%m/%Y') }}
+            {{ c.data_retirada.strftime('%d/%m/%Y') }} →<br>{{ c.data_devolucao.strftime('%d/%m/%Y') }}
           </td>
           <td style="font-size:.78rem;color:var(--text-sec)">
             {% for item in c.itens %}{{ item.peca.modelo }} - {{ item.peca.tamanho }}{% if not loop.last %} / {% endif %}{% endfor %}
           </td>
-          <td class="fw-bold">{{ '%.2f'|format(c.valor_total) }}</td>
+          <td class="fw-bold">R$ {{ '%.2f'|format(c.valor_total) }}</td>
           <td style="color:{% if c.saldo_restante > 0 %}var(--red){% else %}var(--green){% endif %}">
-            {{ '%.2f'|format(c.saldo_restante) }}
+            R$ {{ '%.2f'|format(c.saldo_restante) }}
           </td>
           <td>
             <form method="POST" action="{{ url_for('contratos.alterar_status', id=c.id) }}" id="form-status-{{ c.id }}">
