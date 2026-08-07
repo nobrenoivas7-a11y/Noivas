@@ -1,12 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Agenda — Nobre Elegancy{% endblock %}
 {% block topbar_title %}<i class="bi bi-calendar3 me-2" style="color:var(--rose)"></i>Agenda{% endblock %}
-
 {% block content %}
-<div class="d-flex gap-2 mb-3 flex-wrap">
+<div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
   <a href="?periodo=hoje" class="btn btn-sm {{ 'btn-rose' if periodo=='hoje' else 'btn-rose-outline' }}">Hoje</a>
   <a href="?periodo=semana" class="btn btn-sm {{ 'btn-rose' if periodo=='semana' else 'btn-rose-outline' }}">Esta Semana</a>
   <a href="?periodo=mes" class="btn btn-sm {{ 'btn-rose' if periodo=='mes' else 'btn-rose-outline' }}">Este Mês</a>
+
+  {% if periodo == 'mes' %}
+  <div class="d-flex align-items-center gap-1 ms-2">
+    <a href="?periodo=mes&mes={{ mes_anterior }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-chevron-left"></i></a>
+    <span class="fw-bold px-2" style="color:var(--rose-dark);font-size:.85rem;min-width:120px;text-align:center">
+      {{ inicio.strftime('%B/%Y')|capitalize }}
+    </span>
+    <a href="?periodo=mes&mes={{ mes_seguinte }}" class="btn btn-rose-outline btn-sm"><i class="bi bi-chevron-right"></i></a>
+  </div>
+  {% endif %}
+
   <span class="ms-2 text-muted align-self-center" style="font-size:.85rem">{{ inicio.strftime('%d/%m') }} → {{ fim.strftime('%d/%m/%Y') }}</span>
 </div>
 <div class="card">
