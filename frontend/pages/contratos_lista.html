@@ -59,16 +59,15 @@
             R$ {{ '%.2f'|format(c.saldo_restante) }}
           </td>
           <td>
-            <form method="POST" action="{{ url_for('contratos.alterar_status', id=c.id) }}" id="form-status-{{ c.id }}">
-              <select name="status" class="form-select form-select-sm"
-                onchange="confirmarStatus({{ c.id }}, this, '{{ c.cliente.nome }}', '{{ c.cliente.telefone or '' }}')"
-                style="width:auto;min-width:110px;font-size:.75rem">
-                <option value="ativo" {% if c.status=='ativo' %}selected{% endif %}>Ativo</option>
-                <option value="atrasado" {% if c.status=='atrasado' %}selected{% endif %}>Atrasado</option>
-                <option value="devolvido" {% if c.status=='devolvido' %}selected{% endif %}>Devolvido</option>
-                <option value="cancelado" {% if c.status=='cancelado' %}selected{% endif %}>Cancelado</option>
-              </select>
-            </form>
+            <select name="status" class="form-select form-select-sm"
+              data-id="{{ c.id }}" data-nome="{{ c.cliente.nome }}" data-tel="{{ c.cliente.telefone or '' }}"
+              onchange="confirmarStatus(this)"
+              style="width:auto;min-width:110px;font-size:.75rem">
+              <option value="ativo" {% if c.status=='ativo' %}selected{% endif %}>Ativo</option>
+              <option value="atrasado" {% if c.status=='atrasado' %}selected{% endif %}>Atrasado</option>
+              <option value="devolvido" {% if c.status=='devolvido' %}selected{% endif %}>Devolvido</option>
+              <option value="cancelado" {% if c.status=='cancelado' %}selected{% endif %}>Cancelado</option>
+            </select>
           </td>
           <td>
             <div class="d-flex flex-column gap-1">
@@ -115,30 +114,47 @@ document.querySelectorAll('select[name="status"]').forEach(sel => {
   sel.dataset.original = sel.value;
 });
 
-function confirmarStatus(id, sel, nomeCliente, telefone) {
+function confirmarStatus(sel) {
+  const id = sel.dataset.id;
+  const nomeCliente = sel.dataset.nome;
+  const telefone = sel.dataset.tel;
   const novoStatus = sel.value;
-  if (novoStatus === 'devolvido') {
-    if (confirm('Marcar como devolvido e enviar mensagem de agradecimento para ' + nomeCliente + '?')) {
-      document.getElementById('form-status-' + id).submit();
-      if (telefone) {
-        const tel = telefone.replace(/\D/g, '');
-        const msg = encodeURIComponent(
-          'Olá, ' + nomeCliente + '! 👰✨\n\n' +
-          'A equipe Nobre Elegancy Noivas agradece imensamente a sua confiança em nós para um dos momentos mais especiais da sua vida! 🌸\n\n' +
-          'Foi uma honra fazer parte do seu dia tão especial. Esperamos ter superado suas expectativas e que você tenha se sentido ainda mais linda! 💕\n\n' +
-          'Conta sempre conosco! 🤍\n\n' +
-          '— Nobre Elegancy Noivas'
-        );
-        setTimeout(() => {
-          window.open('https://wa.me/55' + tel + '?text=' + msg, '_blank');
-        }, 500);
-      }
-    } else {
+
+  if (novoStatus === 'devolvido' && telefone) {
+    if (!confirm('Marcar como devolvido e enviar mensagem de agradecimento para ' + nomeCliente + '?')) {
       sel.value = sel.dataset.original;
+      return;
     }
+
+    // Abre o WhatsApp IMEDIATAMENTE (ação direta do usuário, evita bloqueio de pop-up)
+    const tel = telefone.replace(/\D/g, '');
+    const msg = encodeURIComponent(
+      'Olá, ' + nomeCliente + '! 👰✨\n\n' +
+      'A equipe Nobre Elegancy Noivas agradece imensamente a sua confiança em nós para um dos momentos mais especiais da sua vida! 🌸\n\n' +
+      'Foi uma honra fazer parte do seu dia tão especial. Esperamos ter superado suas expectativas e que você tenha se sentido ainda mais linda! 💕\n\n' +
+      'Conta sempre conosco! 🤍\n\n' +
+      '— Nobre Elegancy Noivas'
+    );
+    window.open('https://wa.me/55' + tel + '?text=' + msg, '_blank');
+
+    // Envia a atualização de status em segundo plano
+    atualizarStatus(id, novoStatus);
   } else {
-    document.getElementById('form-status-' + id).submit();
+    atualizarStatus(id, novoStatus);
   }
+}
+
+function atualizarStatus(id, status) {
+  const formData = new FormData();
+  formData.append('status', status);
+  fetch('/contratos/' + id + '/status', {
+    method: 'POST',
+    body: formData
+  }).then(() => {
+    location.reload();
+  }).catch(() => {
+    location.reload();
+  });
 }
 </script>
 {% endblock %}
