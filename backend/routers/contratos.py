@@ -4,7 +4,7 @@ from backend.app import db
 from backend.models.contrato import Contrato, ContratoItem, Pagamento
 from backend.models.peca import Peca
 from backend.models.cliente import Cliente
-from backend.pdf_service import gerar_pdf_contrato
+from backend.services.pdf_service import gerar_pdf_contrato
 from sqlalchemy import text
 import datetime
 
