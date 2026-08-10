@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, Response
 from flask_login import login_required, current_user
 from backend.app import db
 from backend.models.contrato import Contrato, ContratoItem, Pagamento
 from backend.models.peca import Peca
 from backend.models.cliente import Cliente
+from backend.pdf_service import gerar_pdf_contrato
 from sqlalchemy import text
 import datetime
 
@@ -124,7 +125,7 @@ def novo():
 
             db.session.commit()
             flash(f'Contrato criado com sucesso! Cliente: {cliente.nome}', 'success')
-            return redirect(url_for('contratos.detalhe', id=contrato.id))
+            return redirect(url_for('contratos.detalhe', id=contrato.id, novo=1))
         except Exception as e:
             db.session.rollback()
             flash(f'Erro: {str(e)}', 'danger')
@@ -293,4 +294,9 @@ def pdf(id):
     if not contrato:
         flash('Contrato não encontrado.', 'danger')
         return redirect(url_for('contratos.lista'))
-    return render_template('contrato_pdf.html', contrato=contrato)
+    pdf_bytes = gerar_pdf_contrato(contrato)
+    return Response(
+        pdf_bytes,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'inline; filename=contrato_{contrato.id:04d}.pdf'}
+    )
