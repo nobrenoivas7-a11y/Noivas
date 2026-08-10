@@ -203,5 +203,45 @@ function enviarWhatsappHistorico(nome, telefone) {
     window.open('https://wa.me/55' + tel + '?text=' + texto, '_blank');
   }, 500);
 }
+
+// Envia mensagem de confirmação automaticamente quando o contrato acabou de ser criado
+{% if request.args.get('novo') == '1' and contrato.cliente.telefone %}
+window.addEventListener('DOMContentLoaded', function() {
+  const tel = '{{ contrato.cliente.telefone }}'.replace(/\D/g, '');
+  const dataRetirada = '{{ contrato.data_retirada.strftime("%d/%m/%Y") }}';
+  const dataDevolucao = '{{ contrato.data_devolucao.strftime("%d/%m/%Y") }}';
+  const valorTotal = '{{ "%.2f"|format(contrato.valor_total)|replace(".", ",") }}';
+  const valorPago = '{{ "%.2f"|format(contrato.valor_pago)|replace(".", ",") }}';
+  const saldo = '{{ "%.2f"|format(contrato.saldo_restante)|replace(".", ",") }}';
+  {% if contrato.primeiro_aluguel %}
+  const vestidos = 'Vestido sob medida (primeiro aluguel)';
+  {% else %}
+  const vestidos = '{% for item in contrato.itens %}{{ item.peca.modelo }} (Tam {{ item.peca.tamanho }}){% if not loop.last %}, {% endif %}{% endfor %}';
+  {% endif %}
+
+  const texto = encodeURIComponent(
+    'Olá, {{ contrato.cliente.nome }}! 👰✨\n\n' +
+    'Seu contrato na Nobre Elegancy Noivas foi confirmado com sucesso!\n\n' +
+    '📋 *Contrato #{{ "%04d"|format(contrato.id) }}*\n' +
+    '👗 Vestido(s): ' + vestidos + '\n' +
+    '📅 Retirada: ' + dataRetirada + '\n' +
+    '📅 Devolução: ' + dataDevolucao + '\n' +
+    '💰 Valor Total: R$ ' + valorTotal + '\n' +
+    '✅ Valor Pago: R$ ' + valorPago + '\n' +
+    '⏳ Saldo Restante: R$ ' + saldo + '\n\n' +
+    'Qualquer dúvida estamos à disposição! 💕\n— Nobre Elegancy Noivas'
+  );
+
+  const btn = document.createElement('button');
+  btn.innerHTML = '<i class="bi bi-whatsapp me-2"></i>Enviar Confirmação do Contrato por WhatsApp';
+  btn.className = 'btn w-100 mb-3';
+  btn.style.cssText = 'background:#25D366;color:#fff;font-weight:600;padding:.7rem';
+  btn.onclick = function() {
+    window.open('https://wa.me/55' + tel + '?text=' + texto, '_blank');
+    btn.remove();
+  };
+  document.querySelector('.page-content').prepend(btn);
+});
+{% endif %}
 </script>
 {% endblock %}
