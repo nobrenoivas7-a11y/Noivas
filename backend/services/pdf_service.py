@@ -125,8 +125,15 @@ def _draw_page(c, contrato):
         if y < 5*cm:
             c.showPage()
             y = H - 1.5*cm
+            c.setFont('Helvetica', 7.5)
+            c.setFillColor(CINZA_ESCURO)
         lines = _wrap(c, cl, W - 3*cm, 'Helvetica', 7.5)
         for line in lines:
+            if y < 2*cm:
+                c.showPage()
+                y = H - 1.5*cm
+                c.setFont('Helvetica', 7.5)
+                c.setFillColor(CINZA_ESCURO)
             c.drawString(1.5*cm, y, line)
             y -= 0.38*cm
         y -= 0.15*cm
