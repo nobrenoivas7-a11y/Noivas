@@ -113,7 +113,7 @@ def novo():
                     'cliente_id': cliente.id,
                     'nome_cliente': cliente.nome,
                     'telefone': cliente.telefone,
-                    'data_entrega': data_devolucao,
+                    'data_entrega': data_retirada,
                     'data_prova': data_prova,
                     'obs': f'Gerado automaticamente do Contrato #{contrato.id:04d}.'
                 })
