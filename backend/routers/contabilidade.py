@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from flask_login import login_required
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from backend.app import db
 from backend.models.contrato import Pagamento, Despesa, Contrato
 from backend.services.pdf_relatorio import gerar_pdf_relatorio
@@ -60,7 +60,6 @@ def index():
     ]
 
     # ── A RECEBER NA SEMANA ATUAL ───────────────────────────
-    from datetime import timedelta
     inicio_semana = hoje
     fim_semana = hoje + timedelta(days=7)
     contratos_semana = [c for c in contratos_pendentes
@@ -68,12 +67,34 @@ def index():
     a_receber_semana = sum(c.saldo_restante for c in contratos_semana)
     qtd_semana = len(contratos_semana)
 
+    # ── ESTOQUE x PRIMEIRO ALUGUEL (contratos do mês, por data de retirada) ──
+    contratos_mes = Contrato.query.filter(
+        db.extract('month', Contrato.data_retirada) == mes,
+        db.extract('year', Contrato.data_retirada) == ano,
+        Contrato.status != 'cancelado'
+    ).all()
+
+    contratos_estoque = [c for c in contratos_mes if not c.primeiro_aluguel]
+    contratos_primeiro = [c for c in contratos_mes if c.primeiro_aluguel]
+
+    resumo_tipo = {
+        'estoque': {
+            'qtd': len(contratos_estoque),
+            'receita': sum(c.valor_total for c in contratos_estoque),
+        },
+        'primeiro': {
+            'qtd': len(contratos_primeiro),
+            'receita': sum(c.valor_total for c in contratos_primeiro),
+        },
+    }
+
     return render_template('contabilidade.html',
         pagamentos=pagamentos, despesas=despesas,
         receita=receita, total_despesas=total_despesas, lucro=lucro,
         por_forma=por_forma, mes=mes, ano=ano, mes_nome=MESES[mes],
         a_receber_formatado=a_receber_formatado,
-        a_receber_semana=a_receber_semana, qtd_semana=qtd_semana)
+        a_receber_semana=a_receber_semana, qtd_semana=qtd_semana,
+        resumo_tipo=resumo_tipo)
 
 @bp.route('/despesas')
 @login_required
