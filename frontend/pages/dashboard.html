@@ -55,7 +55,7 @@
   </div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
-      <thead><tr><th>#</th><th>Cliente</th><th>Devolução Prevista</th><th>Dias em Atraso</th><th>Saldo</th><th>Ação</th></tr></thead>
+      <thead><tr><th>#</th><th>Cliente</th><th>Devolução Prevista</th><th>Dias em Atraso</th><th>Saldo</th><th>Status</th></tr></thead>
       <tbody>
         {% for c in contratos_atrasados %}
         <tr style="background:#fef2f2">
@@ -64,11 +64,16 @@
           <td style="color:var(--red)">{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
           <td style="color:var(--red);font-weight:700">{{ (hoje - c.data_devolucao).days }} dia(s)</td>
           <td style="color:var(--rose)">R$ {{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}</td>
-          <td class="d-flex gap-1">
-            {% if c.cliente.telefone %}
-            <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff;font-size:.72rem"><i class="bi bi-whatsapp"></i></a>
-            {% endif %}
-            <a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="btn btn-sm btn-rose" style="font-size:.72rem">Dar Baixa</a>
+          <td>
+            <select name="status" class="form-select form-select-sm"
+              data-id="{{ c.id }}" data-nome="{{ c.cliente.nome }}" data-tel="{{ c.cliente.telefone or '' }}"
+              onchange="confirmarStatusDashboard(this)"
+              style="width:auto;min-width:110px;font-size:.75rem">
+              <option value="ativo">Ativo</option>
+              <option value="atrasado" selected>Atrasado</option>
+              <option value="devolvido">Devolvido</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
           </td>
         </tr>
         {% endfor %}
@@ -175,4 +180,53 @@
   <a href="{{ url_for('agenda.index') }}" class="btn btn-rose-outline btn-sm px-3"><i class="bi bi-calendar3 me-1"></i>Agenda</a>
   <a href="{{ url_for('consultas.index') }}" class="btn btn-rose-outline btn-sm px-3"><i class="bi bi-search me-1"></i>Consultar</a>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('select[name="status"]').forEach(sel => {
+  sel.dataset.original = sel.value;
+});
+
+function confirmarStatusDashboard(sel) {
+  const id = sel.dataset.id;
+  const nomeCliente = sel.dataset.nome;
+  const telefone = sel.dataset.tel;
+  const novoStatus = sel.value;
+
+  if (novoStatus === 'devolvido' && telefone) {
+    if (!confirm('Marcar como devolvido e enviar mensagem de agradecimento para ' + nomeCliente + '?')) {
+      sel.value = sel.dataset.original;
+      return;
+    }
+
+    const tel = telefone.replace(/\D/g, '');
+    const msg = encodeURIComponent(
+      'Olá, ' + nomeCliente + '! 👰✨\n\n' +
+      'A equipe Nobre Elegancy Noivas agradece imensamente a sua confiança em nós para um dos momentos mais especiais da sua vida! 🌸\n\n' +
+      'Foi uma honra fazer parte do seu dia tão especial. Esperamos ter superado suas expectativas e que você tenha se sentido ainda mais linda! 💕\n\n' +
+      'Conta sempre conosco! 🤍\n\n' +
+      '— Nobre Elegancy Noivas'
+    );
+    window.open('https://wa.me/55' + tel + '?text=' + msg, '_blank');
+
+    atualizarStatusDashboard(id, novoStatus);
+  } else {
+    atualizarStatusDashboard(id, novoStatus);
+  }
+}
+
+function atualizarStatusDashboard(id, status) {
+  const formData = new FormData();
+  formData.append('status', status);
+  fetch('/contratos/' + id + '/status', {
+    method: 'POST',
+    body: formData
+  }).then(() => {
+    location.reload();
+  }).catch(() => {
+    location.reload();
+  });
+}
+</script>
 {% endblock %}
