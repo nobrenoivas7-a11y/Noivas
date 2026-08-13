@@ -11,19 +11,40 @@ bp = Blueprint('atelie', __name__, url_prefix='/atelie')
 @login_required
 def index():
     status_filtro = request.args.get('status', '')
+    urgencia_filtro = request.args.get('urgencia', '')
+
     pedidos = AteliePedido.query.order_by(AteliePedido.data_entrega.asc().nullslast(), AteliePedido.id.desc()).all()
     if status_filtro:
         pedidos = [p for p in pedidos if p.status == status_filtro]
+
     total = AteliePedido.query.count()
     em_producao = AteliePedido.query.filter(
         AteliePedido.status.in_(['em_corte','em_costura','com_bordadeira','ajustes_finais','compra_material','croqui_aprovado'])
     ).count()
     prontos = AteliePedido.query.filter_by(status='pronto').count()
-    atrasados = [p for p in AteliePedido.query.all() if p.dias_para_entrega is not None and p.dias_para_entrega < 0 and p.status != 'entregue']
+
+    todos_pedidos = AteliePedido.query.filter(AteliePedido.status != 'entregue').all()
+    pedidos_atrasados = [p for p in todos_pedidos if p.dias_para_entrega is not None and p.dias_para_entrega < 0]
+    pedidos_esta_semana = [p for p in todos_pedidos if p.dias_para_entrega is not None and 0 <= p.dias_para_entrega <= 7]
+    pedidos_proxima_semana = [p for p in todos_pedidos if p.dias_para_entrega is not None and 8 <= p.dias_para_entrega <= 14]
+    pedidos_depois = [p for p in todos_pedidos if p.dias_para_entrega is not None and p.dias_para_entrega > 14]
+
+    if urgencia_filtro == 'atrasado':
+        pedidos = pedidos_atrasados
+    elif urgencia_filtro == 'semana':
+        pedidos = pedidos_esta_semana
+    elif urgencia_filtro == 'proxima':
+        pedidos = pedidos_proxima_semana
+    elif urgencia_filtro == 'depois':
+        pedidos = pedidos_depois
+
     return render_template('atelie/index.html',
-        pedidos=pedidos, status_filtro=status_filtro,
+        pedidos=pedidos, status_filtro=status_filtro, urgencia_filtro=urgencia_filtro,
         total=total, em_producao=em_producao, prontos=prontos,
-        atrasados=len(atrasados),
+        atrasados=len(pedidos_atrasados),
+        qtd_esta_semana=len(pedidos_esta_semana),
+        qtd_proxima_semana=len(pedidos_proxima_semana),
+        qtd_depois=len(pedidos_depois),
         status_labels=AteliePedido.STATUS_LABELS)
 
 @bp.route('/novo', methods=['GET', 'POST'])
