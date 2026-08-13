@@ -35,10 +35,45 @@ def index():
     for p in pagamentos:
         por_forma[p.forma] = por_forma.get(p.forma, 0) + p.valor
 
+    # ── A RECEBER POR MÊS (baseado na data de retirada) ────
+    contratos_pendentes = Contrato.query.filter(
+        Contrato.status.in_(['ativo', 'atrasado'])
+    ).all()
+
+    a_receber_por_mes = {}
+    for c in contratos_pendentes:
+        if c.saldo_restante > 0:
+            chave = (c.data_retirada.year, c.data_retirada.month)
+            if chave not in a_receber_por_mes:
+                a_receber_por_mes[chave] = {'total': 0, 'qtd': 0}
+            a_receber_por_mes[chave]['total'] += c.saldo_restante
+            a_receber_por_mes[chave]['qtd'] += 1
+
+    a_receber_lista = sorted(a_receber_por_mes.items(), key=lambda x: x[0])
+    a_receber_formatado = [
+        {
+            'mes_ano': f'{MESES[m]}/{a}',
+            'total': dados['total'],
+            'qtd': dados['qtd']
+        }
+        for (a, m), dados in a_receber_lista
+    ]
+
+    # ── A RECEBER NA SEMANA ATUAL ───────────────────────────
+    from datetime import timedelta
+    inicio_semana = hoje
+    fim_semana = hoje + timedelta(days=7)
+    contratos_semana = [c for c in contratos_pendentes
+                         if inicio_semana <= c.data_retirada <= fim_semana and c.saldo_restante > 0]
+    a_receber_semana = sum(c.saldo_restante for c in contratos_semana)
+    qtd_semana = len(contratos_semana)
+
     return render_template('contabilidade.html',
         pagamentos=pagamentos, despesas=despesas,
         receita=receita, total_despesas=total_despesas, lucro=lucro,
-        por_forma=por_forma, mes=mes, ano=ano, mes_nome=MESES[mes])
+        por_forma=por_forma, mes=mes, ano=ano, mes_nome=MESES[mes],
+        a_receber_formatado=a_receber_formatado,
+        a_receber_semana=a_receber_semana, qtd_semana=qtd_semana)
 
 @bp.route('/despesas')
 @login_required
