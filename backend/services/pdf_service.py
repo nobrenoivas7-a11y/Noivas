@@ -84,7 +84,33 @@ def _draw_page(c, contrato):
             y = _linha(c, y, f'{campo}:', val)
         y -= 0.3*cm
 
+    # ── SEÇÃO: OBSERVAÇÕES DO CONTRATO ─────────────────────
+    if obs.strip():
+        if y < 6*cm:
+            c.showPage()
+            y = H - 1.5*cm
+        y = _secao(c, y, 'OBSERVAÇÕES DO CONTRATO')
+        c.setFont('Helvetica', 8.5)
+        c.setFillColor(CINZA_ESCURO)
+        for linha_obs in obs.split('\n'):
+            linha_obs = linha_obs.strip()
+            if not linha_obs:
+                continue
+            if y < 3*cm:
+                c.showPage()
+                y = H - 1.5*cm
+                c.setFont('Helvetica', 8.5)
+                c.setFillColor(CINZA_ESCURO)
+            wrapped = _wrap(c, linha_obs, W - 3*cm, 'Helvetica', 8.5)
+            for wline in wrapped:
+                c.drawString(1.5*cm, y, wline)
+                y -= 0.42*cm
+        y -= 0.3*cm
+
     # ── SEÇÃO: VALORES ─────────────────────────────────────
+    if y < 5*cm:
+        c.showPage()
+        y = H - 1.5*cm
     y = _secao(c, y, 'DO PREÇO E DAS CONDIÇÕES DE PAGAMENTO')
     pagamentos = contrato.pagamentos
     forma = pagamentos[0].forma.replace('_', ' ').title() if pagamentos else 'Não informado'
