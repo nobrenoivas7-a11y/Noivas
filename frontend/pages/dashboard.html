@@ -47,6 +47,37 @@
   </div>
 </div>
 
+<!-- CONTRATOS ATRASADOS — PENDENTES DE BAIXA -->
+{% if contratos_atrasados %}
+<div class="card mb-4" style="border-color:var(--red)">
+  <div class="card-header d-flex justify-content-between align-items-center" style="border-color:var(--red);background:#fef2f2">
+    <h6 style="color:var(--red)"><i class="bi bi-exclamation-triangle me-2"></i>VESTIDOS ATRASADOS — PENDENTES DE BAIXA ({{ contratos_atrasados|length }})</h6>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Cliente</th><th>Devolução Prevista</th><th>Dias em Atraso</th><th>Saldo</th><th>Ação</th></tr></thead>
+      <tbody>
+        {% for c in contratos_atrasados %}
+        <tr style="background:#fef2f2">
+          <td><a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="contract-id">#{{ '%04d'|format(c.id) }}</a></td>
+          <td class="fw-bold">{{ c.cliente.nome }}</td>
+          <td style="color:var(--red)">{{ c.data_devolucao.strftime('%d/%m/%Y') }}</td>
+          <td style="color:var(--red);font-weight:700">{{ (hoje - c.data_devolucao).days }} dia(s)</td>
+          <td style="color:var(--rose)">R$ {{ '%.2f'|format(c.saldo_restante)|replace('.',',') }}</td>
+          <td class="d-flex gap-1">
+            {% if c.cliente.telefone %}
+            <a href="https://wa.me/55{{ c.cliente.telefone|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff;font-size:.72rem"><i class="bi bi-whatsapp"></i></a>
+            {% endif %}
+            <a href="{{ url_for('contratos.detalhe', id=c.id) }}" class="btn btn-sm btn-rose" style="font-size:.72rem">Dar Baixa</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 <!-- LINHA 2: contratos recentes + receita por forma -->
 <div class="row g-3 mb-4">
   <div class="col-md-7">
