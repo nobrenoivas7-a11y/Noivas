@@ -37,6 +37,24 @@
   </div>
 </div>
 
+<!-- ESTOQUE x PRIMEIRO ALUGUEL -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="stat-card" style="--accent-color:var(--rose)">
+      <div class="stat-label"><i class="bi bi-bag-heart me-1"></i>Vestidos do Estoque</div>
+      <div class="stat-value" style="color:var(--rose);font-size:1.4rem">{{ resumo_tipo.estoque.qtd }} contrato(s)</div>
+      <div class="stat-sub">Receita: R$ {{ '%.2f'|format(resumo_tipo.estoque.receita)|replace('.',',') }}</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="stat-card" style="--accent-color:var(--gold)">
+      <div class="stat-label"><i class="bi bi-stars me-1"></i>Primeiro Aluguel (Sob Medida)</div>
+      <div class="stat-value" style="color:var(--gold);font-size:1.4rem">{{ resumo_tipo.primeiro.qtd }} contrato(s)</div>
+      <div class="stat-sub">Receita: R$ {{ '%.2f'|format(resumo_tipo.primeiro.receita)|replace('.',',') }}</div>
+    </div>
+  </div>
+</div>
+
 <!-- A RECEBER -->
 <div class="row g-3 mb-4">
   <div class="col-md-4">
