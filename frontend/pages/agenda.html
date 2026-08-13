@@ -19,6 +19,31 @@
 
   <span class="ms-2 text-muted align-self-center" style="font-size:.85rem">{{ inicio.strftime('%d/%m') }} → {{ fim.strftime('%d/%m/%Y') }}</span>
 </div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:var(--rose)">
+      <div class="stat-label">Total de Contratos</div>
+      <div class="stat-value">{{ contratos|length }}</div>
+      <div class="stat-sub">no período selecionado</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:#065f46">
+      <div class="stat-label">Valor Total a Receber</div>
+      <div class="stat-value" style="font-size:1.4rem">R$ {{ '%.2f'|format(contratos|sum(attribute='saldo_restante'))|replace('.',',') }}</div>
+      <div class="stat-sub">saldo dos contratos listados</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:#991b1b">
+      <div class="stat-label">Contratos Atrasados</div>
+      <div class="stat-value">{{ contratos|selectattr('status', 'equalto', 'atrasado')|list|length }}</div>
+      <div class="stat-sub">no período selecionado</div>
+    </div>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-body p-0">
     {% if contratos %}
