@@ -3,35 +3,57 @@
 {% block topbar_title %}Ateliê de Confecção{% endblock %}
 
 {% block content %}
-<!-- Stats -->
+<!-- Stats de Urgência (clicáveis) -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">
-    <div class="stat-card" style="--accent-color:var(--rose)">
-      <div class="stat-label">Total de Pedidos</div>
-      <div class="stat-value">{{ total }}</div>
-    </div>
+    <a href="?urgencia=atrasado" style="text-decoration:none">
+      <div class="stat-card" style="--accent-color:var(--red);{% if urgencia_filtro=='atrasado' %}border-color:var(--red){% endif %}">
+        <div class="stat-label">🔴 Atrasados</div>
+        <div class="stat-value" style="color:var(--red)">{{ atrasados }}</div>
+        <div class="stat-sub">precisam de atenção urgente</div>
+      </div>
+    </a>
   </div>
   <div class="col-6 col-md-3">
-    <div class="stat-card" style="--accent-color:var(--gold)">
-      <div class="stat-label">Em Produção</div>
-      <div class="stat-value" style="color:var(--gold)">{{ em_producao }}</div>
-    </div>
+    <a href="?urgencia=semana" style="text-decoration:none">
+      <div class="stat-card" style="--accent-color:#f59e0b;{% if urgencia_filtro=='semana' %}border-color:#f59e0b{% endif %}">
+        <div class="stat-label">🟠 Esta Semana</div>
+        <div class="stat-value" style="color:#f59e0b">{{ qtd_esta_semana }}</div>
+        <div class="stat-sub">entrega nos próx. 7 dias</div>
+      </div>
+    </a>
   </div>
   <div class="col-6 col-md-3">
-    <div class="stat-card" style="--accent-color:var(--green)">
-      <div class="stat-label">Prontos</div>
-      <div class="stat-value" style="color:var(--green)">{{ prontos }}</div>
-    </div>
+    <a href="?urgencia=proxima" style="text-decoration:none">
+      <div class="stat-card" style="--accent-color:var(--gold);{% if urgencia_filtro=='proxima' %}border-color:var(--gold){% endif %}">
+        <div class="stat-label">🟡 Próxima Semana</div>
+        <div class="stat-value" style="color:var(--gold)">{{ qtd_proxima_semana }}</div>
+        <div class="stat-sub">entrega em 8-14 dias</div>
+      </div>
+    </a>
   </div>
   <div class="col-6 col-md-3">
-    <div class="stat-card" style="--accent-color:var(--red)">
-      <div class="stat-label">Atrasados</div>
-      <div class="stat-value" style="color:var(--red)">{{ atrasados }}</div>
-    </div>
+    <a href="?urgencia=depois" style="text-decoration:none">
+      <div class="stat-card" style="--accent-color:var(--green);{% if urgencia_filtro=='depois' %}border-color:var(--green){% endif %}">
+        <div class="stat-label">🟢 Depois</div>
+        <div class="stat-value" style="color:var(--green)">{{ qtd_depois }}</div>
+        <div class="stat-sub">mais de 14 dias</div>
+      </div>
+    </a>
   </div>
 </div>
 
-<!-- Filtros + Novo -->
+<!-- Resumo geral -->
+<div class="d-flex gap-3 mb-3 flex-wrap" style="font-size:.78rem;color:var(--text-dim)">
+  <span><strong style="color:var(--text-sec)">{{ total }}</strong> pedidos no total</span>
+  <span><strong style="color:var(--gold)">{{ em_producao }}</strong> em produção</span>
+  <span><strong style="color:var(--green)">{{ prontos }}</strong> prontos</span>
+  {% if urgencia_filtro %}
+  <a href="{{ url_for('atelie.index') }}" style="color:var(--rose-dark)"><i class="bi bi-x-circle me-1"></i>Limpar filtro de urgência</a>
+  {% endif %}
+</div>
+
+<!-- Filtros de status + Novo -->
 <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
   <a href="?status=" class="btn btn-sm {{ 'btn-rose' if not status_filtro else 'btn-rose-outline' }}">Todos</a>
   {% for key, label in status_labels.items() %}
@@ -42,6 +64,15 @@
 
 <!-- Lista -->
 <div class="card">
+  <div class="card-header">
+    <h6><i class="bi bi-scissors me-2" style="color:var(--rose)"></i>
+      {% if urgencia_filtro == 'atrasado' %}Pedidos Atrasados
+      {% elif urgencia_filtro == 'semana' %}Entregas Desta Semana
+      {% elif urgencia_filtro == 'proxima' %}Entregas da Próxima Semana
+      {% elif urgencia_filtro == 'depois' %}Entregas Futuras
+      {% else %}Todos os Pedidos (ordenados por data de entrega){% endif %}
+    </h6>
+  </div>
   <div class="card-body p-0">
     {% if pedidos %}
     <table class="table table-hover mb-0">
@@ -50,7 +81,7 @@
       </thead>
       <tbody>
         {% for p in pedidos %}
-        <tr>
+        <tr {% if p.dias_para_entrega is not none and p.dias_para_entrega < 0 and p.status != 'entregue' %}style="background:#fef2f2"{% elif p.dias_para_entrega is not none and p.dias_para_entrega <= 7 and p.status != 'entregue' %}style="background:#fffbeb"{% endif %}>
           <td><a href="{{ url_for('atelie.detalhe', id=p.id) }}" class="contract-id">#{{ '%04d'|format(p.id) }}</a></td>
           <td>
             <div class="fw-bold" style="color:var(--text)">{{ p.nome_cliente }}</div>
@@ -63,9 +94,10 @@
             {% if p.data_entrega %}
               {% if p.dias_para_entrega is not none and p.dias_para_entrega < 0 and p.status != 'entregue' %}
                 <span style="color:var(--red);font-weight:600">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
-                <span class="badge ms-1" style="background:#fee2e2;color:#991b1b;font-size:.65rem">ATRASADO</span>
-              {% elif p.dias_para_entrega is not none and p.dias_para_entrega <= 3 and p.status != 'entregue' %}
-                <span style="color:var(--gold);font-weight:600">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
+                <span class="badge ms-1" style="background:#fee2e2;color:#991b1b;font-size:.65rem">{{ p.dias_para_entrega|abs }}d ATRASADO</span>
+              {% elif p.dias_para_entrega is not none and p.dias_para_entrega <= 7 and p.status != 'entregue' %}
+                <span style="color:#f59e0b;font-weight:600">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
+                <span class="badge ms-1" style="background:#fef3c7;color:#92400e;font-size:.65rem">{{ p.dias_para_entrega }}d</span>
               {% else %}
                 <span style="color:var(--text-sec)">{{ p.data_entrega.strftime('%d/%m/%Y') }}</span>
               {% endif %}
@@ -94,8 +126,8 @@
     {% else %}
     <div class="text-center py-5" style="color:var(--text-dim)">
       <i class="bi bi-scissors" style="font-size:2.5rem;color:var(--border)"></i>
-      <p class="mt-2">Nenhum pedido de confecção ainda.</p>
-      <a href="{{ url_for('atelie.novo') }}" class="btn btn-rose btn-sm">Criar primeiro pedido</a>
+      <p class="mt-2">Nenhum pedido encontrado neste filtro.</p>
+      <a href="{{ url_for('atelie.novo') }}" class="btn btn-rose btn-sm">Criar novo pedido</a>
     </div>
     {% endif %}
   </div>
