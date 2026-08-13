@@ -37,6 +37,40 @@
   </div>
 </div>
 
+<!-- A RECEBER -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card" style="--accent-color:var(--rose)">
+      <div class="stat-label">A Receber Esta Semana</div>
+      <div class="stat-value" style="color:var(--rose);font-size:1.4rem">R$ {{ '%.2f'|format(a_receber_semana)|replace('.',',') }}</div>
+      <div class="stat-sub">{{ qtd_semana }} contrato(s) com retirada nos próximos 7 dias</div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header"><h6><i class="bi bi-calendar-check me-2" style="color:var(--rose)"></i>Saldo a Receber por Mês (data de retirada)</h6></div>
+      <div class="card-body p-0">
+        {% if a_receber_formatado %}
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Mês</th><th>Contratos</th><th>Total a Receber</th></tr></thead>
+          <tbody>
+            {% for item in a_receber_formatado %}
+            <tr>
+              <td class="fw-bold" style="color:var(--rose-dark)">{{ item.mes_ano }}</td>
+              <td style="color:var(--text-sec)">{{ item.qtd }}</td>
+              <td class="fw-bold" style="color:var(--rose)">R$ {{ '%.2f'|format(item.total)|replace('.',',') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-3" style="color:var(--text-dim);font-size:.82rem">Nenhum saldo pendente futuro.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-3">
   <div class="col-md-4">
     <div class="card">
